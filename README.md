@@ -1,56 +1,60 @@
-# Welcome to your Expo app 👋
+# Guia Flui - Enterprise Challenge
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+O **Guia Flui** é o aplicativo móvel oficial da **Flui Soluções Sustentáveis** projetado para ajudar motoristas de veículos elétricos a encontrar, comparar e escolher os melhores pontos de recarga (eletropostos) no Brasil com segurança, clareza e planejamento.
 
-## Get started
+Este projeto foi construído utilizando **React Native** com **Expo** e TypeScript.
 
-1. Install dependencies
+---
 
+## 🚀 Como Iniciar o Projeto
+
+### Pré-requisitos
+Certifique-se de ter instalado em sua máquina:
+* [Node.js](https://nodejs.org/) (v18 ou superior recomendado)
+* Gerenciador de pacotes `npm` ou `yarn`
+* Aplicativo **Expo Go** instalado no celular ([Android](https://play.google.com/store/apps/details?id=host.exp.exponent) ou [iOS](https://apps.apple.com/app/expo-go/id984023376)) para testar em dispositivo físico.
+
+### Passos para Rodar Localmente
+
+1. **Instale as dependências:**
    ```bash
    npm install
    ```
 
-2. Start the app
-
+2. **Inicie o servidor de desenvolvimento do Expo:**
    ```bash
-   npx expo start
+   npm start
    ```
 
-In the output, you'll find options to open the app in a
+3. **Abra o aplicativo:**
+   * **No celular:** Escaneie o QR Code exibido no terminal utilizando a câmera do celular (iOS) ou o aplicativo Expo Go (Android).
+   * **No emulador/simulador:** Pressione `a` para Android ou `i` para iOS se tiver os ambientes de desenvolvimento nativos configurados.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+---
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## 🏗️ Arquitetura do Projeto
 
-## Get a fresh project
+A arquitetura do projeto segue um modelo modular e robusto dentro da pasta `src/`:
 
-When you're ready, run:
+* **`src/app/`**: Roteamento baseado em arquivos utilizando **Expo Router**.
+* **`src/components/`**: Componentes de interface modulares. Cada componente possui seu próprio arquivo de estilo separado (ex: `Card.tsx` e `Card.styles.ts`), simulando o comportamento de **CSS Modules** no React Native.
+* **`src/contexts/`**: Provedores de estado globais, como o `MockModeContext` para gerenciar a simulação de dados em tempo de desenvolvimento.
+* **`src/models/`**: Definições de tipagem TypeScript estritas (Usuario, Veiculo, Eletroposto, Avaliacao, Rota) alinhadas às regras de negócio.
+* **`src/services/`**: Camada de integração com APIs externas e serviços como o Firebase ou provedores locais de dados simulados (`mockData.ts`).
+* **`src/styles/`**: Design tokens centralizados (`theme.ts`) e estilos globais de compatibilidade (`globals.css`).
 
-```bash
-npm run reset-project
-```
+---
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## 🛠️ Tecnologias Utilizadas
 
-### Other setup steps
+* **React Native** (v0.85+)
+* **Expo SDK 56** com Expo Router
+* **TypeScript**
+* **AsyncStorage** (para persistência de preferências de modo mockado)
+* **Reanimated** (para micro-animações fluidas e premium)
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+---
 
-## Learn more
+## 📄 Licença
 
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Este projeto é de propriedade exclusiva da **Flui Soluções Sustentáveis**.

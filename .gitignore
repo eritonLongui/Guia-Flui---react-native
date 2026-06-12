@@ -41,3 +41,17 @@ example
 # generated native folders
 /ios
 /android
+
+# local env files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Expo EAS and builds
+.eas/
+*.apk
+*.aab
+*.ipa
+

@@ -1,0 +1,33 @@
+guia-flui/
+├── .github/                  # Workflows do GitHub Actions para testes e build
+├── assets/                   # Imagens, splash screen e ícones do aplicativo
+├── src/
+│   ├── app/                  # Roteamento baseado em arquivos (Expo Router)
+│   │   ├── (auth)/           # Grupo de rotas de autenticação (login, cadastro)
+│   │   │   ├── login.tsx
+│   │   │   └── register.tsx
+│   │   ├── (tabs)/           # Grupo de rotas com a barra de navegação inferior
+│   │   │   ├── index.tsx     # Home
+│   │   │   ├── search.tsx    # Busca de eletropostos
+│   │   │   ├── route.tsx     # Planejamento de rota
+│   │   │   ├── favorites.tsx # Favoritos
+│   │   │   └── profile.tsx   # Perfil
+│   │   ├── details/
+│   │   │   └── [id].tsx      # Detalhe do eletroposto (dinâmico)
+│   │   ├── settings/         # Configurações (mock toggle, etc.)
+│   │   └── _layout.tsx       # Layout raiz (Provedores globais, navegação)
+│   ├── components/           # Componentes reutilizáveis do app
+│   │   ├── common/           # Botões, Inputs, Cards personalizados
+│   │   └── voice/            # Componentes do Assistente de Voz
+│   ├── contexts/             # Provedores de estado (AuthContext, MockDataContext, VehicleContext)
+│   ├── hooks/                # Hooks personalizados
+│   ├── models/               # Definições de tipos do TypeScript
+│   ├── services/             # APIs, Firebase e Mock Data Services
+│   ├── styles/               # Sistema de design e estilos globais
+│   │   ├── globals.css       # Estilos globais/Variáveis (compatível com web/nativos via CSS)
+│   │   └── theme.ts          # Definições de cores e constantes de estilo para React Native
+│   └── utils/                # Funções auxiliares (calculadoras de carga, filtros)
+├── app.json                  # Arquivo de configuração de metadados do Expo
+├── package.json              # Dependências do NPM e scripts de execução
+├── tsconfig.json             # Configuração do TypeScript
+└── README.md                 # Documentação do projeto

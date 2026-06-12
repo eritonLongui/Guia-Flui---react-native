@@ -1,0 +1,30 @@
+/* Design Tokens Globais - Guia Flui */
+:root {
+  --color-primary: #00A859;
+  --color-secondary: #FFB800;
+  --color-dark: #121212;
+  --color-light: #F5F5F7;
+  --color-card-dark: #1E1E1E;
+  --color-card-light: #FFFFFF;
+  
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  
+  --border-radius-sm: 4px;
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+  --border-radius-xl: 16px;
+  
+  --font-family: 'Inter', sans-serif;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-family);
+  background-color: var(--color-light);
+  color: var(--color-dark);
+}

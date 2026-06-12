@@ -57,4 +57,5 @@ A arquitetura do projeto segue um modelo modular e robusto dentro da pasta `src/
 
 ## 📄 Licença
 
-Este projeto é de propriedade exclusiva da **Flui Soluções Sustentáveis**.
+Este projeto está sendo desenvolvido em grupo para um trabalho da faculdade **FIAP** (Enterprise Challenge), em parceria com a **Flui Soluções Sustentáveis**, que propôs o desafio de inovação. Para mais detalhes sobre os termos de desenvolvimento acadêmico, consulte o arquivo [LICENSE](file:///c:/Code/Guia%20Flui/LICENSE).
+

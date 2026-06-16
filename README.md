@@ -1,61 +1,221 @@
-# Guia Flui - Enterprise Challenge
+# Rota — Mobile App
 
-O **Guia Flui** é o aplicativo móvel oficial da **Flui Soluções Sustentáveis** projetado para ajudar motoristas de veículos elétricos a encontrar, comparar e escolher os melhores pontos de recarga (eletropostos) no Brasil com segurança, clareza e planejamento.
-
-Este projeto foi construído utilizando **React Native** com **Expo** e TypeScript.
+Aplicativo mobile para motoristas de veículos elétricos encontrarem, compararem e escolherem os melhores pontos de recarga no Brasil.
 
 ---
 
-## 🚀 Como Iniciar o Projeto
+## Início rápido (1 comando)
 
-### Pré-requisitos
-Certifique-se de ter instalado em sua máquina:
-* [Node.js](https://nodejs.org/) (v18 ou superior recomendado)
-* Gerenciador de pacotes `npm` ou `yarn`
-* Aplicativo **Expo Go** instalado no celular ([Android](https://play.google.com/store/apps/details?id=host.exp.exponent) ou [iOS](https://apps.apple.com/app/expo-go/id984023376)) para testar em dispositivo físico.
+```bash
+git clone <url-do-repo>
+cd rota-facul
+npm run setup
+npm start
+```
 
-### Passos para Rodar Localmente
+O comando `setup` instala dependências, valida o ambiente e verifica o TypeScript automaticamente.
 
-1. **Instale as dependências:**
-   ```bash
-   npm install
-   ```
+**Alternativa via shell (macOS/Linux):**
 
-2. **Inicie o servidor de desenvolvimento do Expo:**
-   ```bash
-   npm start
-   ```
+```bash
+chmod +x scripts/setup.sh
+./scripts/setup.sh
+```
 
-3. **Abra o aplicativo:**
-   * **No celular:** Escaneie o QR Code exibido no terminal utilizando a câmera do celular (iOS) ou o aplicativo Expo Go (Android).
-   * **No emulador/simulador:** Pressione `a` para Android ou `i` para iOS se tiver os ambientes de desenvolvimento nativos configurados.
+Depois escaneie o QR Code com **Expo Go** (Android) ou **Câmera** (iOS).
 
 ---
 
-## 🏗️ Arquitetura do Projeto
+## Pré-requisitos
 
-A arquitetura do projeto segue um modelo modular e robusto dentro da pasta `src/`:
+| Ferramenta | Versão mínima | Obrigatório |
+|------------|---------------|-------------|
+| Node.js    | `>= 20.19.4`  | Sim |
+| npm        | `>= 10`       | Sim |
+| Git        | qualquer      | Recomendado |
+| Expo Go    | app na loja   | Para testar no celular |
+| Xcode      | 15+           | Só build iOS local |
+| Android Studio | —         | Só build Android local |
 
-* **`src/app/`**: Roteamento baseado em arquivos utilizando **Expo Router**.
-* **`src/components/`**: Componentes de interface modulares. Cada componente possui seu próprio arquivo de estilo separado (ex: `Card.tsx` e `Card.styles.ts`), simulando o comportamento de **CSS Modules** no React Native.
-* **`src/contexts/`**: Provedores de estado globais, como o `MockModeContext` para gerenciar a simulação de dados em tempo de desenvolvimento.
-* **`src/models/`**: Definições de tipagem TypeScript estritas (Usuario, Veiculo, Eletroposto, Avaliacao, Rota) alinhadas às regras de negócio.
-* **`src/services/`**: Camada de integração com APIs externas e serviços como o Firebase ou provedores locais de dados simulados (`mockData.ts`).
-* **`src/styles/`**: Design tokens centralizados (`theme.ts`) e estilos globais de compatibilidade (`globals.css`).
+### Node.js — qual versão usar?
+
+O projeto já define a versão correta:
+
+| Gerenciador | Comando |
+|-------------|---------|
+| **nvm** | `nvm install && nvm use` |
+| **asdf** | `asdf install && asdf set nodejs 22.13.0` |
+| **fnm** | `fnm install && fnm use` |
+
+Arquivos de referência: [`.nvmrc`](.nvmrc) e [`.tool-versions`](.tool-versions) → `22.13.0`
 
 ---
 
-## 🛠️ Tecnologias Utilizadas
+## Scripts disponíveis
 
-* **React Native** (v0.85+)
-* **Expo SDK 56** com Expo Router
-* **TypeScript**
-* **AsyncStorage** (para persistência de preferências de modo mockado)
-* **Reanimated** (para micro-animações fluidas e premium)
+### Setup e validação
+
+| Comando | Descrição |
+|---------|-----------|
+| `npm run setup` | **Setup completo**: instala deps + typecheck + valida ambiente |
+| `npm run setup:check` | Verifica Node, npm, node_modules e ferramentas opcionais |
+| `npm run typecheck` | Verifica tipos TypeScript (`tsc --noEmit`) |
+| `npm run validate` | `setup:check` + `typecheck` |
+
+### Desenvolvimento
+
+| Comando | Descrição |
+|---------|-----------|
+| `npm start` | Inicia o Metro bundler + Expo Dev Tools |
+| `npm run start:clear` | Inicia limpando o cache do Metro |
+| `npm run ios` | Abre no simulador iOS |
+| `npm run android` | Abre no emulador Android |
+| `npm run web` | Abre no navegador (mapa com fallback de lista) |
+
+### Build nativo (opcional)
+
+| Comando | Descrição |
+|---------|-----------|
+| `npm run prebuild` | Gera pastas `ios/` e `android/` |
+| `npm run prebuild:clean` | Regenera nativo do zero |
+| `npm run build:ios` | Compila e roda no simulador/dispositivo iOS |
+| `npm run build:android` | Compila e roda no emulador/dispositivo Android |
+
+> Para build nativo você precisa rodar `npm run prebuild` antes na primeira vez.
 
 ---
 
-## 📄 Licença
+## Fluxo recomendado para o time
 
-Este projeto está sendo desenvolvido em grupo para um trabalho da faculdade **FIAP** (Enterprise Challenge), em parceria com a **Flui Soluções Sustentáveis**, que propôs o desafio de inovação. Para mais detalhes sobre os termos de desenvolvimento acadêmico, consulte o arquivo [LICENSE](file:///c:/Code/Guia%20Flui/LICENSE).
+```bash
+# 1. Clonar e configurar (só na primeira vez)
+git clone <url>
+cd rota-facul
+npm run setup
 
+# 2. Desenvolver
+npm start
+
+# 3. Antes de abrir PR
+npm run validate
+```
+
+---
+
+## Testando no celular
+
+1. Instale **Expo Go** ([Android](https://play.google.com/store/apps/details?id=host.exp.exponent) · [iOS](https://apps.apple.com/app/expo-go/id982107779))
+2. Rode `npm start`
+3. Escaneie o QR Code:
+   - **Android**: pelo app Expo Go
+   - **iOS**: pela câmera nativa
+
+Celular e computador devem estar na **mesma rede Wi-Fi**.
+
+---
+
+## Stack
+
+- React Native 0.85 + **Expo SDK 56**
+- **Expo Router** (file-based routing)
+- TypeScript
+- **NativeWind** (Tailwind CSS)
+- **React Native Maps**
+- **Lucide Icons**
+- Repository Pattern (mock → Supabase futuro)
+
+---
+
+## Telas do MVP
+
+| Tela | Descrição |
+|------|-----------|
+| Splash | Branding Rota |
+| Home | Veículo ativo, estações próximas, recomendação, última rota |
+| Explorar | Mapa fullscreen + bottom sheet com lista |
+| Detalhes | Compatibilidade, tempo, segurança, conveniência, conectores |
+| Favoritos | Estações salvas |
+| Perfil | Usuário, veículo, toggle modo mockado |
+
+---
+
+## Arquitetura
+
+```
+Screen → Repository → Mock Data (futuro: Supabase)
+```
+
+Telas **nunca** importam `src/data/` diretamente.
+
+```
+src/
+├── app/           # rotas Expo Router
+├── components/    # design system
+├── features/      # lógica de domínio
+├── repositories/  # contratos + implementações
+├── providers/     # estado global
+├── data/          # mocks
+├── types/         # entidades
+├── constants/     # design tokens
+└── lib/           # utilitários
+```
+
+---
+
+## Solução de problemas
+
+### `No version is set for nodejs` (asdf)
+
+```bash
+asdf install
+asdf set nodejs 22.13.0
+npm run setup
+```
+
+### Node.js desatualizado
+
+```bash
+nvm install
+nvm use
+npm run setup
+```
+
+### Metro com cache corrompido
+
+```bash
+npm run start:clear
+# ou
+npx expo start --clear
+```
+
+### Mapa não aparece no Expo Go
+
+`react-native-maps` pode exigir **dev build** em alguns casos:
+
+```bash
+npm run prebuild
+npm run build:ios    # ou build:android
+```
+
+Na aba **Explorar**, a versão web exibe lista como fallback.
+
+### Erros após `git pull`
+
+```bash
+npm run setup
+```
+
+Isso reinstala dependências e revalida o ambiente.
+
+### `npm ci` falha
+
+```bash
+rm -rf node_modules
+npm run setup
+```
+
+---
+
+## Licença
+
+Enterprise Challenge FIAP — Flui Soluções Sustentáveis

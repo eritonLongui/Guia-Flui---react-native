@@ -10,7 +10,7 @@ interface ButtonProps extends PressableProps {
 }
 
 const variantStyles: Record<ButtonVariant, { container: string; text: string }> = {
-  primary: { container: 'bg-accent', text: 'text-background' },
+  primary: { container: 'bg-elevated', text: 'text-text-primary' },
   secondary: { container: 'bg-surface border border-border', text: 'text-text-primary' },
   ghost: { container: 'bg-transparent', text: 'text-text-primary' },
 };
@@ -27,7 +27,7 @@ export function Button({ variant = 'primary', label, className, disabled, ...pro
       )}
       disabled={disabled}
       {...props}>
-      <Text className={cn('font-inter text-base font-semibold', styles.text)}>{label}</Text>
+      <Text className={cn('font-poppins-bold text-base uppercase', styles.text)}>{label}</Text>
     </Pressable>
   );
 }

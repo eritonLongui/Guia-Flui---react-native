@@ -1,12 +1,21 @@
-import type { Avaliacao, Eletroposto, Favorito, Rota, Usuario, Veiculo } from '@/types';
+import type { Avaliacao, Eletroposto, Favorito, Localizacao, Rota, Usuario, Veiculo } from '@/types';
 
 export const usuarioMock: Usuario = {
   id: 'user-1',
   nome: 'Marina Silva',
   email: 'marina.silva@email.com',
-  avatar: undefined,
+  avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop&q=80',
   reputacao: 4.8,
   criadoEm: '2025-03-15T10:00:00Z',
+};
+
+/** Localização mockada do usuário — Pinheiros, SP (mesma região da última rota). */
+export const localizacaoUsuarioMock: Localizacao = {
+  endereco: 'Rua dos Pinheiros, 498',
+  cidade: 'São Paulo',
+  estado: 'SP',
+  latitude: -23.5678,
+  longitude: -46.6918,
 };
 
 export const veiculosMock: Veiculo[] = [
@@ -31,8 +40,8 @@ export const eletropostosMock: Eletroposto[] = [
     endereco: 'Av. Brigadeiro Faria Lima, 1000',
     cidade: 'São Paulo',
     estado: 'SP',
-    latitude: -23.5616,
-    longitude: -46.6913,
+    latitude: -23.5645,
+    longitude: -46.6902,
     nota: 4.8,
     quantidadeAvaliacoes: 124,
     pontuacaoSeguranca: 4.7,
@@ -59,12 +68,12 @@ export const eletropostosMock: Eletroposto[] = [
   },
   {
     id: 'ep-2',
-    nome: 'Charge Paulista',
-    endereco: 'Av. Paulista, 1578',
+    nome: 'Charge Pinheiros',
+    endereco: 'Rua dos Pinheiros, 750',
     cidade: 'São Paulo',
     estado: 'SP',
-    latitude: -23.5632,
-    longitude: -46.6542,
+    latitude: -23.5692,
+    longitude: -46.6865,
     nota: 4.6,
     quantidadeAvaliacoes: 89,
     pontuacaoSeguranca: 4.5,
@@ -88,12 +97,12 @@ export const eletropostosMock: Eletroposto[] = [
   },
   {
     id: 'ep-3',
-    nome: 'Vila Olímpia Fast Charge',
-    endereco: 'Rua Funchal, 418',
+    nome: 'Pinheiros Fast Charge',
+    endereco: 'Rua Teodoro Sampaio, 1440',
     cidade: 'São Paulo',
     estado: 'SP',
-    latitude: -23.5955,
-    longitude: -46.6869,
+    latitude: -23.5658,
+    longitude: -46.6972,
     nota: 4.5,
     quantidadeAvaliacoes: 67,
     pontuacaoSeguranca: 4.3,
@@ -153,11 +162,11 @@ export const eletropostosMock: Eletroposto[] = [
   {
     id: 'ep-5',
     nome: 'Jardins Charge Hub',
-    endereco: 'Al. Santos, 1827',
+    endereco: 'Rua Cardeal Arcoverde, 892',
     cidade: 'São Paulo',
     estado: 'SP',
-    latitude: -23.5677,
-    longitude: -46.6719,
+    latitude: -23.5712,
+    longitude: -46.6892,
     nota: 4.4,
     quantidadeAvaliacoes: 45,
     pontuacaoSeguranca: 4.2,
@@ -300,12 +309,12 @@ export const eletropostosMock: Eletroposto[] = [
   },
   {
     id: 'ep-10',
-    nome: 'Butantã University Charge',
-    endereco: 'Av. Prof. Luciano Gualberto, 380',
+    nome: 'Pinheiros Charge Point',
+    endereco: 'Rua dos Pinheiros, 610',
     cidade: 'São Paulo',
     estado: 'SP',
-    latitude: -23.5711,
-    longitude: -46.7089,
+    latitude: -23.5662,
+    longitude: -46.6948,
     nota: 4.0,
     quantidadeAvaliacoes: 28,
     pontuacaoSeguranca: 4.4,

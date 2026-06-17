@@ -2,6 +2,7 @@ import type {
   Avaliacao,
   Eletroposto,
   Favorito,
+  Localizacao,
   Rota,
   Usuario,
   Veiculo,
@@ -40,6 +41,9 @@ export class SupabaseEletropostoRepository implements EletropostoRepository {
 
 export class SupabaseUsuarioRepository implements UsuarioRepository {
   obterAtual(): Promise<Usuario> {
+    return Promise.reject(naoConfigurado());
+  }
+  obterLocalizacaoAtual(): Promise<Localizacao> {
     return Promise.reject(naoConfigurado());
   }
 }

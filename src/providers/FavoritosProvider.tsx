@@ -3,7 +3,7 @@ import {
   usuarioRepository,
 } from '@/repositories/mockRepositories';
 import type { Eletroposto } from '@/types';
-import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 
 interface FavoritosContextData {
   favoritos: Eletroposto[];
@@ -26,16 +26,27 @@ export function FavoritosProvider({ children }: { children: ReactNode }) {
   const [ids, setIds] = useState<Set<string>>(new Set());
   const [carregando, setCarregando] = useState(true);
   const [usuarioId, setUsuarioId] = useState<string>('');
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   const recarregar = useCallback(async () => {
     const usuario = await usuarioRepository.obterAtual();
+    if (!mountedRef.current) return;
     setUsuarioId(usuario.id);
     const favs = await favoritoRepository.listarPorUsuario(usuario.id);
+    if (!mountedRef.current) return;
     const idsSet = new Set(favs.map((f) => f.eletropostoId));
     setIds(idsSet);
 
     const { eletropostoRepository } = await import('@/repositories/mockRepositories');
     const todos = await eletropostoRepository.listar();
+    if (!mountedRef.current) return;
     setFavoritos(todos.filter((e) => idsSet.has(e.id)));
     setCarregando(false);
   }, []);

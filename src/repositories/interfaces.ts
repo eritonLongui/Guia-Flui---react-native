@@ -1,4 +1,4 @@
-import type { Avaliacao, Eletroposto, Favorito, Rota, Usuario, Veiculo } from '@/types';
+import type { Avaliacao, Eletroposto, Favorito, Localizacao, Rota, Usuario, Veiculo } from '@/types';
 
 export interface EletropostoRepository {
   listar(): Promise<Eletroposto[]>;
@@ -10,6 +10,7 @@ export interface EletropostoRepository {
 
 export interface UsuarioRepository {
   obterAtual(): Promise<Usuario>;
+  obterLocalizacaoAtual(): Promise<Localizacao>;
 }
 
 export interface VeiculoRepository {

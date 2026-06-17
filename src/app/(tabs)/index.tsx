@@ -1,5 +1,7 @@
+import { Title } from '@/components/Title';
 import { Button } from '@/components/Button';
 import { ScreenContainer } from '@/components/ScreenContainer';
+import { StationCarousel } from '@/components/StationCarousel';
 import { StationCard } from '@/components/StationCard';
 import { VehicleCard } from '@/components/VehicleCard';
 import { obterSaudacao } from '@/lib/formatadores';
@@ -11,10 +13,10 @@ import {
 } from '@/repositories/mockRepositories';
 import type { Eletroposto, Rota, Usuario } from '@/types';
 import { router } from 'expo-router';
-import { Lightbulb, MapPin, Route } from 'lucide-react-native';
+import { Lightbulb, Route, User } from 'lucide-react-native';
 import { colors } from '@/constants/theme';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Text, View } from 'react-native';
+import { ActivityIndicator, Image, StyleSheet, Text, View } from 'react-native';
 
 export default function HomeScreen() {
   const { veiculo, carregando: carregandoVeiculo } = useVeiculoAtivo();
@@ -25,6 +27,8 @@ export default function HomeScreen() {
   const [carregando, setCarregando] = useState(true);
 
   useEffect(() => {
+    let mounted = true;
+
     async function carregar() {
       const [u, p, r, rota] = await Promise.all([
         usuarioRepository.obterAtual(),
@@ -32,96 +36,140 @@ export default function HomeScreen() {
         eletropostoRepository.listarRecomendados(1),
         usuarioRepository.obterAtual().then((usr) => rotaRepository.obterUltima(usr.id)),
       ]);
+      if (!mounted) return;
       setUsuario(u);
       setProximos(p);
       setRecomendado(r[0] ?? null);
       setUltimaRota(rota);
       setCarregando(false);
     }
+
     carregar();
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
-  if (carregando || carregandoVeiculo) {
-    return (
-      <ScreenContainer className="items-center justify-center">
-        <ActivityIndicator color={colors.accent} />
-      </ScreenContainer>
-    );
-  }
+  const carregandoTela = carregando || carregandoVeiculo;
 
   return (
     <ScreenContainer scroll>
-      <View className="pt-4">
-        <Text className="font-inter text-base text-text-secondary">{obterSaudacao()},</Text>
-        <Text className="font-poppins text-2xl text-text-primary">{usuario?.nome}</Text>
-      </View>
-
-      {veiculo && (
-        <View className="mt-6">
-          <VehicleCard veiculo={veiculo} />
+      {carregandoTela ? (
+        <View className="min-h-[50%] flex-1 items-center justify-center py-24">
+          <ActivityIndicator color={colors.textPrimary} />
         </View>
-      )}
-
-      <View className="mt-6">
-        <Button
-          label="Encontrar Recarga"
-          onPress={() => router.push('/(tabs)/explorar')}
-        />
-      </View>
-
-      <View className="mt-8">
-        <View className="mb-3 flex-row items-center gap-2">
-          <MapPin size={18} color={colors.accent} />
-          <Text className="font-poppins text-lg text-text-primary">Perto de Você</Text>
-        </View>
-        <View className="gap-3">
-          {proximos.map((ep) => (
-            <StationCard
-              key={ep.id}
-              eletroposto={ep}
-              onPress={() => router.push(`/eletroposto/${ep.id}`)}
-            />
-          ))}
-        </View>
-      </View>
-
-      {recomendado && (
-        <View className="mt-8">
-          <Text className="mb-3 font-poppins text-lg text-text-primary">
-            Recomendado para Você
-          </Text>
-          <StationCard
-            eletroposto={recomendado}
-            onPress={() => router.push(`/eletroposto/${recomendado.id}`)}
-          />
-        </View>
-      )}
-
-      {ultimaRota && (
-        <View className="mt-8 rounded-card border border-border bg-surface p-5">
-          <View className="mb-3 flex-row items-center gap-2">
-            <Route size={18} color={colors.accent} />
-            <Text className="font-poppins text-lg text-text-primary">Última Rota</Text>
+      ) : (
+        <>
+          <View className="flex-row items-center gap-4 pt-4">
+            {usuario?.avatar ? (
+              <Image
+                source={{ uri: usuario.avatar }}
+                style={styles.avatar}
+                resizeMode="cover"
+                accessibilityLabel={`Foto de ${usuario.nome}`}
+              />
+            ) : (
+              <View style={styles.avatarFallback}>
+                <User size={24} color={colors.textPrimary} />
+              </View>
+            )}
+            <View className="flex-1">
+              <Text className="font-poppins text-lg text-text-secondary">{obterSaudacao()},</Text>
+              <Text style={styles.userName} className="text-2xl uppercase text-text-primary">
+                {usuario?.nome}
+              </Text>
+            </View>
           </View>
-          <Text className="font-inter text-sm text-text-secondary">
-            {ultimaRota.origem} → {ultimaRota.destino}
-          </Text>
-          <Text className="mt-2 font-inter text-base text-text-primary">
-            {ultimaRota.distanciaEstimada} · {ultimaRota.tempoEstimado}
-          </Text>
-        </View>
-      )}
 
-      <View className="mt-8 rounded-card border border-border bg-elevated p-5">
-        <View className="mb-2 flex-row items-center gap-2">
-          <Lightbulb size={18} color={colors.warning} />
-          <Text className="font-poppins text-base text-text-primary">Dica de Recarga</Text>
-        </View>
-        <Text className="font-inter text-sm leading-5 text-text-secondary">
-          Carregue até 80% em viagens longas para preservar a bateria e reduzir o tempo de
-          espera na fila.
-        </Text>
-      </View>
+          {veiculo && (
+            <View className="mt-6">
+              <VehicleCard veiculo={veiculo} />
+            </View>
+          )}
+
+          <View className="mt-6">
+            <Button
+              label="Encontrar Recarga"
+              onPress={() => router.push('/(tabs)/explorar')}
+            />
+          </View>
+
+          <View className="mt-8">
+            <Title size="sm" className="mb-3">
+              Perto de Você
+            </Title>
+            <StationCarousel
+              data={proximos}
+              onSelect={(ep) => router.push(`/eletroposto/${ep.id}`)}
+            />
+          </View>
+
+          {recomendado && (
+            <View className="mt-8">
+              <Title size="sm" className="mb-3">
+                Recomendado para Você
+              </Title>
+              <StationCard
+                eletroposto={recomendado}
+                onPress={() => router.push(`/eletroposto/${recomendado.id}`)}
+              />
+            </View>
+          )}
+
+          {ultimaRota && (
+            <View className="mt-8 rounded-card bg-surface p-5">
+              <View className="mb-3 flex-row items-center gap-2">
+                <Route size={18} color={colors.textPrimary} />
+                <Title size="lg" className="shrink-0">
+                  Última Rota
+                </Title>
+              </View>
+              <Text className="font-poppins text-base text-text-secondary">
+                {ultimaRota.origem} → {ultimaRota.destino}
+              </Text>
+              <Text className="mt-2 font-poppins text-base text-text-primary">
+                {ultimaRota.distanciaEstimada} · {ultimaRota.tempoEstimado}
+              </Text>
+            </View>
+          )}
+
+          <View className="mt-8 rounded-card bg-elevated p-5">
+            <View className="mb-3 flex-row items-center gap-2">
+              <Lightbulb size={18} color={colors.textPrimary} />
+              <Title size="lg" className="shrink-0">
+                Dica de Recarga
+              </Title>
+            </View>
+            <Text className="font-poppins text-base leading-6 text-text-secondary">
+              Carregue até 80% em viagens longas para preservar a bateria e reduzir o tempo de
+              espera na fila.
+            </Text>
+          </View>
+        </>
+      )}
     </ScreenContainer>
   );
 }
+
+const AVATAR_SIZE = 52;
+
+const styles = StyleSheet.create({
+  avatar: {
+    width: AVATAR_SIZE,
+    height: AVATAR_SIZE,
+    borderRadius: AVATAR_SIZE / 2,
+  },
+  avatarFallback: {
+    width: AVATAR_SIZE,
+    height: AVATAR_SIZE,
+    borderRadius: AVATAR_SIZE / 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.elevated,
+  },
+  userName: {
+    fontFamily: 'LexendGiga_600SemiBold',
+    letterSpacing: 2,
+  },
+});

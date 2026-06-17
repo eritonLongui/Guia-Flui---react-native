@@ -10,6 +10,14 @@ export interface Usuario {
   criadoEm: string;
 }
 
+export interface Localizacao {
+  endereco: string;
+  cidade: string;
+  estado: string;
+  latitude: number;
+  longitude: number;
+}
+
 export interface Veiculo {
   id: string;
   usuarioId: string;

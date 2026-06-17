@@ -80,8 +80,25 @@ Arquivos de referência: [`.nvmrc`](.nvmrc) e [`.tool-versions`](.tool-versions)
 | `npm run prebuild:clean` | Regenera nativo do zero |
 | `npm run build:ios` | Compila e roda no simulador/dispositivo iOS |
 | `npm run build:android` | Compila e roda no emulador/dispositivo Android |
+| `npm run ios:open` | Abre o app já instalado no simulador (Metro deve estar rodando) |
 
-> Para build nativo você precisa rodar `npm run prebuild` antes na primeira vez.
+### Simulador iOS (dev build)
+
+O app usa **porta 8083** (a 8081 costuma estar ocupada por outros projetos). Sempre use **dois terminais**:
+
+```bash
+# Terminal 1 — Metro (deixe rodando)
+npm start
+
+# Terminal 2 — primeira vez ou após mudanças nativas
+npm run ios
+
+# Depois, para reabrir sem rebuild:
+npm run ios:open
+```
+
+> **Erro "No script URL provided"?** O Metro não estava rodando ou a porta estava errada. Confirme com `curl http://127.0.0.1:8083/status` — deve retornar `packager-status:running`.
+
 
 ---
 

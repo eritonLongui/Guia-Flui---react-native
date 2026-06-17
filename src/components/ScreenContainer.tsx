@@ -1,5 +1,6 @@
 import { cn } from '@/lib/cn';
-import { layout } from '@/constants/theme';
+import { ScreenEdgeFades } from '@/components/ScreenEdgeFades';
+import { colors, layout } from '@/constants/theme';
 import { ScrollView, View, type ViewProps } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -30,16 +31,19 @@ export function ScreenContainer({
 
   if (scroll) {
     return (
-      <View className="flex-1 bg-background" style={{ paddingTop: insets.top }}>
+      <View className="flex-1 bg-background">
         <ScrollView
-          className="flex-1"
+          className="flex-1 bg-background"
+          style={{ backgroundColor: colors.background }}
           contentContainerStyle={{
+            paddingTop: insets.top,
             paddingHorizontal: noPadding ? 0 : layout.paddingHorizontal,
-            paddingBottom: insets.bottom + 24,
+            paddingBottom: insets.bottom + layout.floatingTabBar.scrollPadding,
           }}
           showsVerticalScrollIndicator={false}>
           {children}
         </ScrollView>
+        <ScreenEdgeFades />
       </View>
     );
   }

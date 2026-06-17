@@ -1,6 +1,6 @@
 import { colors } from '@/constants/theme';
 import { Star } from 'lucide-react-native';
-import { Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 interface RatingProps {
   nota: number;
@@ -9,12 +9,29 @@ interface RatingProps {
 
 export function Rating({ nota, quantidadeAvaliacoes }: RatingProps) {
   return (
-    <View className="flex-row items-center gap-1">
-      <Star size={14} color={colors.warning} fill={colors.warning} />
-      <Text className="font-inter text-sm text-text-primary">{nota.toFixed(1)}</Text>
+    <View style={styles.row}>
+      <Star size={13} color={colors.warning} fill={colors.warning} />
+      <Text style={styles.score} className="font-poppins-bold text-sm text-warning">
+        {nota.toFixed(1)}
+      </Text>
       {quantidadeAvaliacoes !== undefined && (
-        <Text className="font-inter text-xs text-text-muted">({quantidadeAvaliacoes})</Text>
+        <Text style={styles.count} className="font-poppins text-sm text-text-muted">
+          ({quantidadeAvaliacoes})
+        </Text>
       )}
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  score: {
+    marginLeft: 6,
+  },
+  count: {
+    marginLeft: 4,
+  },
+});

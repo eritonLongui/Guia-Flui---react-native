@@ -1,27 +1,29 @@
+import { FloatingTabBar } from '@/components/FloatingTabBar';
 import { colors } from '@/constants/theme';
 import { Tabs } from 'expo-router';
 import { Heart, Home, Map, User } from 'lucide-react-native';
+import { View } from 'react-native';
 
 export default function TabsLayout() {
   return (
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarStyle: {
-          backgroundColor: colors.surface,
-          borderTopColor: colors.border,
-          borderTopWidth: 1,
-          height: 64,
-          paddingBottom: 8,
-          paddingTop: 8,
-        },
-        tabBarActiveTintColor: colors.accent,
-        tabBarInactiveTintColor: colors.textMuted,
-        tabBarLabelStyle: {
-          fontFamily: 'Inter_500Medium',
-          fontSize: 11,
-        },
-      }}>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <Tabs
+        tabBar={(props) => <FloatingTabBar {...props} />}
+        screenOptions={{
+          lazy: true,
+          headerShown: false,
+          tabBarShowLabel: false,
+          tabBarStyle: {
+            position: 'absolute',
+            backgroundColor: 'transparent',
+            borderTopWidth: 0,
+            elevation: 0,
+            height: 0,
+          },
+          sceneStyle: {
+            backgroundColor: colors.background,
+          },
+        }}>
       <Tabs.Screen
         name="index"
         options={{
@@ -34,6 +36,7 @@ export default function TabsLayout() {
         options={{
           title: 'Explorar',
           tabBarIcon: ({ color, size }) => <Map size={size} color={color} />,
+          sceneStyle: { backgroundColor: 'transparent' },
         }}
       />
       <Tabs.Screen
@@ -51,5 +54,6 @@ export default function TabsLayout() {
         }}
       />
     </Tabs>
+    </View>
   );
 }

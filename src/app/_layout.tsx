@@ -1,10 +1,11 @@
 import { AppProviders } from '@/providers/AppProviders';
 import {
-  Inter_400Regular,
-  Inter_500Medium,
-  Inter_600SemiBold,
-} from '@expo-google-fonts/inter';
+  LexendGiga_600SemiBold,
+  LexendGiga_700Bold,
+} from '@expo-google-fonts/lexend-giga';
 import {
+  Poppins_400Regular,
+  Poppins_500Medium,
   Poppins_600SemiBold,
   Poppins_700Bold,
 } from '@expo-google-fonts/poppins';
@@ -12,16 +13,17 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
-import { StatusBar } from 'react-native';
+import { StatusBar, View } from 'react-native';
 import '../global.css';
 
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
-    Inter_400Regular,
-    Inter_500Medium,
-    Inter_600SemiBold,
+    LexendGiga_600SemiBold,
+    LexendGiga_700Bold,
+    Poppins_400Regular,
+    Poppins_500Medium,
     Poppins_600SemiBold,
     Poppins_700Bold,
   });
@@ -32,7 +34,9 @@ export default function RootLayout() {
     }
   }, [fontsLoaded]);
 
-  if (!fontsLoaded) return null;
+  if (!fontsLoaded) {
+    return <View style={{ flex: 1, backgroundColor: '#1E1E1E' }} />;
+  }
 
   return (
     <AppProviders>

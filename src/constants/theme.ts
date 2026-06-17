@@ -4,6 +4,7 @@ export const colors = {
   elevated: '#3A3A3A',
   border: '#4A4A4A',
   accent: '#33FE4F',
+  accentBorder: 'rgba(51, 254, 79, 0.45)',
   textPrimary: '#FFFFFF',
   textSecondary: '#C7C7C7',
   textMuted: '#8A8A8A',
@@ -41,7 +42,22 @@ export const layout = {
   searchHeight: 52,
   filterSize: 48,
   heroImageHeight: 240,
-  cardRadius: 24,
+  cardRadius: 16,
   inputRadius: 16,
-  buttonRadius: 24,
+  buttonRadius: 12,
+  /** Altura fixa dos cards no carrossel da Home. */
+  carouselCardHeight: 220,
+  carouselTitleHeight: 56,
+  /** Altura do fade inferior padronizado em todas as telas. */
+  fadeHeight: 72,
+  floatingTabBar: {
+    height: 64,
+    bottomOffset: 24,
+    horizontalInset: 24,
+    scrollPadding: 112,
+    padding: 8,
+    iconGap: 16,
+    iconSize: 48,
+    activeBorderWidth: 2,
+  },
 } as const;

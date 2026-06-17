@@ -1,6 +1,6 @@
 import { cn } from '@/lib/cn';
 import type { NivelCompatibilidade } from '@/types';
-import { Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 const labels: Record<NivelCompatibilidade, string> = {
   compativel: 'Compatível',
@@ -8,10 +8,10 @@ const labels: Record<NivelCompatibilidade, string> = {
   incompativel: 'Incompatível',
 };
 
-const styles: Record<NivelCompatibilidade, string> = {
-  compativel: 'bg-accent/20 border-accent',
-  parcial: 'bg-warning/20 border-warning',
-  incompativel: 'bg-danger/20 border-danger',
+const containerStyles: Record<NivelCompatibilidade, string> = {
+  compativel: 'bg-accent/20',
+  parcial: 'bg-warning/20',
+  incompativel: 'bg-danger/20',
 };
 
 const textStyles: Record<NivelCompatibilidade, string> = {
@@ -27,10 +27,23 @@ interface CompatibilityBadgeProps {
 
 export function CompatibilityBadge({ nivel, className }: CompatibilityBadgeProps) {
   return (
-    <View className={cn('rounded-full border px-3 py-1', styles[nivel], className)}>
-      <Text className={cn('font-inter text-xs font-semibold', textStyles[nivel])}>
+    <View style={styles.badge} className={cn('px-3 py-1', containerStyles[nivel], className)}>
+      <Text
+        className={cn(
+          'font-poppins-bold text-xs uppercase tracking-badge',
+          textStyles[nivel],
+        )}>
         {labels[nivel]}
       </Text>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  badge: {
+    alignSelf: 'flex-start',
+    flexGrow: 0,
+    flexShrink: 0,
+    borderRadius: 4,
+  },
+});

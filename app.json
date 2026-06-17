@@ -36,9 +36,7 @@
       ],
       [
         "react-native-maps",
-        {
-          "googleMapsApiKey": ""
-        }
+        {}
       ]
     ],
     "experiments": {

@@ -17,12 +17,19 @@ export function VeiculoAtivoProvider({ children }: { children: ReactNode }) {
   const [carregando, setCarregando] = useState(true);
 
   useEffect(() => {
-    usuarioRepository.obterAtual().then((usuario) => {
+    let mounted = true;
+
+    usuarioRepository.obterAtual().then((usuario) =>
       veiculoRepository.obterAtivo(usuario.id).then((v) => {
+        if (!mounted) return;
         setVeiculo(v);
         setCarregando(false);
-      });
-    });
+      }),
+    );
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   return (

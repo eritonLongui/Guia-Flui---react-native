@@ -2,6 +2,7 @@ import {
   avaliacoesMock,
   eletropostosMock,
   favoritosMock,
+  localizacaoUsuarioMock,
   rotaMock,
   usuarioMock,
   veiculosMock,
@@ -14,23 +15,34 @@ import type {
   UsuarioRepository,
   VeiculoRepository,
 } from '@/repositories/interfaces';
-import type { Avaliacao, Eletroposto, Favorito, Rota, Usuario, Veiculo } from '@/types';
+import type { Avaliacao, Eletroposto, Favorito, Localizacao, Rota, Usuario, Veiculo } from '@/types';
+import { calcularDistanciaKm } from '@/lib/formatadores';
 
 let favoritosStore = [...favoritosMock];
 
+function comDistanciaDoUsuario(eletropostos: Eletroposto[]): Eletroposto[] {
+  const { latitude, longitude } = localizacaoUsuarioMock;
+  return eletropostos
+    .map((ep) => ({
+      ...ep,
+      distanciaKm: Math.round(calcularDistanciaKm(latitude, longitude, ep.latitude, ep.longitude) * 10) / 10,
+    }))
+    .sort((a, b) => (a.distanciaKm ?? 0) - (b.distanciaKm ?? 0));
+}
+
 export class MockEletropostoRepository implements EletropostoRepository {
   async listar(): Promise<Eletroposto[]> {
-    return [...eletropostosMock];
+    return comDistanciaDoUsuario([...eletropostosMock]);
   }
 
   async buscarPorId(id: string): Promise<Eletroposto | null> {
-    return eletropostosMock.find((e) => e.id === id) ?? null;
+    const ep = eletropostosMock.find((e) => e.id === id) ?? null;
+    if (!ep) return null;
+    return comDistanciaDoUsuario([ep])[0];
   }
 
   async listarProximos(limite: number): Promise<Eletroposto[]> {
-    return [...eletropostosMock]
-      .sort((a, b) => (a.distanciaKm ?? 0) - (b.distanciaKm ?? 0))
-      .slice(0, limite);
+    return comDistanciaDoUsuario([...eletropostosMock]).slice(0, limite);
   }
 
   async listarRecomendados(limite: number): Promise<Eletroposto[]> {
@@ -42,11 +54,13 @@ export class MockEletropostoRepository implements EletropostoRepository {
   async buscar(termo: string): Promise<Eletroposto[]> {
     const t = termo.toLowerCase().trim();
     if (!t) return this.listar();
-    return eletropostosMock.filter(
-      (e) =>
-        e.nome.toLowerCase().includes(t) ||
-        e.endereco.toLowerCase().includes(t) ||
-        e.cidade.toLowerCase().includes(t),
+    return comDistanciaDoUsuario(
+      eletropostosMock.filter(
+        (e) =>
+          e.nome.toLowerCase().includes(t) ||
+          e.endereco.toLowerCase().includes(t) ||
+          e.cidade.toLowerCase().includes(t),
+      ),
     );
   }
 }
@@ -54,6 +68,10 @@ export class MockEletropostoRepository implements EletropostoRepository {
 export class MockUsuarioRepository implements UsuarioRepository {
   async obterAtual(): Promise<Usuario> {
     return usuarioMock;
+  }
+
+  async obterLocalizacaoAtual(): Promise<Localizacao> {
+    return localizacaoUsuarioMock;
   }
 }
 

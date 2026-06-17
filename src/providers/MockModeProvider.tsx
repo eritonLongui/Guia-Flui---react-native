@@ -20,10 +20,17 @@ export function MockModeProvider({ children }: { children: ReactNode }) {
   const [carregando, setCarregando] = useState(true);
 
   useEffect(() => {
+    let mounted = true;
+
     AsyncStorage.getItem(STORAGE_KEY).then((value) => {
+      if (!mounted) return;
       if (value !== null) setIsMockMode(value === 'true');
       setCarregando(false);
     });
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const toggleMockMode = useCallback(() => {

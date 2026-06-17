@@ -9,7 +9,7 @@ interface FeatureChipProps {
 export function FeatureChip({ label, className }: FeatureChipProps) {
   return (
     <View className={cn('rounded-full bg-elevated px-3 py-1.5', className)}>
-      <Text className="font-inter text-xs text-text-secondary">{label}</Text>
+      <Text className="font-poppins text-sm text-text-secondary">{label}</Text>
     </View>
   );
 }

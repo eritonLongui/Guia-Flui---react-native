@@ -37,7 +37,11 @@ export function ContentFade({
   if (height <= 0) return null;
 
   return (
-    <View pointerEvents="none" style={[styles.container, { height }, style]}>
+    <View
+      accessible={false}
+      importantForAccessibility="no"
+      pointerEvents="none"
+      style={[styles.container, { height }, style]}>
       <Svg width={SCREEN_WIDTH} height={height}>
         <Defs>
           <LinearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">

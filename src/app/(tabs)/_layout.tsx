@@ -1,12 +1,13 @@
 import { FloatingTabBar } from '@/components/FloatingTabBar';
-import { colors } from '@/constants/theme';
+import { GradientBackground } from '@/components/GradientFill';
 import { Tabs } from 'expo-router';
 import { Heart, Home, Map, User } from 'lucide-react-native';
 import { View } from 'react-native';
 
 export default function TabsLayout() {
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
+    <View style={{ flex: 1 }}>
+      <GradientBackground />
       <Tabs
         tabBar={(props) => <FloatingTabBar {...props} />}
         screenOptions={{
@@ -21,13 +22,14 @@ export default function TabsLayout() {
             height: 0,
           },
           sceneStyle: {
-            backgroundColor: colors.background,
+            backgroundColor: 'transparent',
           },
         }}>
       <Tabs.Screen
         name="index"
         options={{
           title: 'Home',
+          tabBarAccessibilityLabel: 'Início',
           tabBarIcon: ({ color, size }) => <Home size={size} color={color} />,
         }}
       />
@@ -35,6 +37,7 @@ export default function TabsLayout() {
         name="explorar"
         options={{
           title: 'Explorar',
+          tabBarAccessibilityLabel: 'Explorar mapa',
           tabBarIcon: ({ color, size }) => <Map size={size} color={color} />,
           sceneStyle: { backgroundColor: 'transparent' },
         }}
@@ -43,6 +46,7 @@ export default function TabsLayout() {
         name="favoritos"
         options={{
           title: 'Favoritos',
+          tabBarAccessibilityLabel: 'Favoritos',
           tabBarIcon: ({ color, size }) => <Heart size={size} color={color} />,
         }}
       />
@@ -50,6 +54,7 @@ export default function TabsLayout() {
         name="perfil"
         options={{
           title: 'Perfil',
+          tabBarAccessibilityLabel: 'Perfil',
           tabBarIcon: ({ color, size }) => <User size={size} color={color} />,
         }}
       />

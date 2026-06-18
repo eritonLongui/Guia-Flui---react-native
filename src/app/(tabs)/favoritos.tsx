@@ -13,8 +13,11 @@ export default function FavoritosScreen() {
   return (
     <ScreenContainer scroll>
       {carregando ? (
-        <View className="min-h-[50%] flex-1 items-center justify-center py-24">
-          <ActivityIndicator color={colors.textPrimary} />
+        <View
+          className="min-h-[50%] flex-1 items-center justify-center py-24"
+          accessibilityRole="progressbar"
+          accessibilityLabel="Carregando">
+          <ActivityIndicator accessible={false} color={colors.textPrimary} />
         </View>
       ) : (
         <>

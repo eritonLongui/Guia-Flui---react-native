@@ -1,4 +1,5 @@
 import { AppProviders } from '@/providers/AppProviders';
+import { colors } from '@/constants/theme';
 import {
   LexendGiga_600SemiBold,
   LexendGiga_700Bold,
@@ -35,13 +36,17 @@ export default function RootLayout() {
   }, [fontsLoaded]);
 
   if (!fontsLoaded) {
-    return <View style={{ flex: 1, backgroundColor: '#1E1E1E' }} />;
+    return <View style={{ flex: 1, backgroundColor: colors.backgroundEnd }} />;
   }
 
   return (
     <AppProviders>
-      <StatusBar barStyle="light-content" backgroundColor="#1E1E1E" />
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#1E1E1E' } }}>
+      <StatusBar barStyle="light-content" backgroundColor={colors.backgroundEnd} />
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: colors.backgroundEnd },
+        }}>
         <Stack.Screen name="index" />
         <Stack.Screen name="splash" />
         <Stack.Screen name="(tabs)" />

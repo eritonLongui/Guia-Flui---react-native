@@ -40,7 +40,7 @@ export const mapDarkStyle: MapStyle = [
   {
     featureType: 'road.highway',
     elementType: 'geometry.stroke',
-    stylers: [{ color: '#33FE4F' }, { lightness: -40 }],
+    stylers: [{ color: '#31FE50' }, { lightness: -40 }],
   },
   {
     featureType: 'transit',

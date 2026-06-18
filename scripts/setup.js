@@ -84,6 +84,16 @@ function ensureNodeVersion() {
   }
 }
 
+function ensureEnvFile() {
+  const envExample = path.join(ROOT, '.env.example');
+  const env = path.join(ROOT, '.env');
+
+  if (fs.existsSync(envExample) && !fs.existsSync(env)) {
+    fs.copyFileSync(envExample, env);
+    success('.env criado a partir de .env.example — preencha GOOGLE_MAPS_API_KEY');
+  }
+}
+
 function installDependencies() {
   const lockfile = path.join(ROOT, 'package-lock.json');
   const nodeModules = path.join(ROOT, 'node_modules');
@@ -137,9 +147,11 @@ function printNextSteps() {
 
   ${colors.green}Build nativo (opcional)${colors.reset}
     npm run prebuild        Gera pastas ios/ e android/
-    npm run build:android   Build Android local (requer prebuild)
-    npm run build:ios       Build iOS local (requer prebuild + Xcode)
+    npm run ios             Simulador iOS (dev build)
+    npm run android         Emulador Android (dev build)
+    npm run build:apk       APK na nuvem (EAS) para testar no celular
 
+  ${colors.dim}Guia completo: docs/SETUP.md${colors.reset}
   ${colors.dim}Dica: instale o app Expo Go no celular e escaneie o QR Code.${colors.reset}
 `);
 }
@@ -155,6 +167,7 @@ function main() {
   success(`Node.js ${process.version}`);
 
   title('2/4 — Dependências');
+  ensureEnvFile();
   installDependencies();
 
   title('3/4 — TypeScript');

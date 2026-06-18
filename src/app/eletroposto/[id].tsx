@@ -1,13 +1,19 @@
 import { Title } from '@/components/Title';
-import { ScreenEdgeFades } from '@/components/ScreenEdgeFades';
+import { ContentFade } from '@/components/ContentFade';
+import { GradientBackground, GradientFill } from '@/components/GradientFill';
+import { ScreenTopFade } from '@/components/ScreenTopFade';
 import { Button } from '@/components/Button';
 import { CompatibilityBadge } from '@/components/CompatibilityBadge';
 import { FeatureChip } from '@/components/FeatureChip';
 import { Rating } from '@/components/Rating';
+import { ReviewsCarousel } from '@/components/ReviewsCarousel';
 import { SafetyBadge } from '@/components/SafetyBadge';
 import { colors, layout } from '@/constants/theme';
+import { HIT_SLOP_PADRAO } from '@/lib/a11y';
+import { obterExplicacaoCompatibilidade } from '@/lib/compatibilidade';
 import { formatarDistancia } from '@/lib/formatadores';
 import { useFavoritos } from '@/providers/FavoritosProvider';
+import { useVeiculoAtivo } from '@/providers/VeiculoAtivoProvider';
 import {
   avaliacaoRepository,
   eletropostoRepository,
@@ -31,6 +37,7 @@ import {
   Alert,
   Pressable,
   ScrollView,
+  StyleSheet,
   Text,
   View,
 } from 'react-native';
@@ -44,12 +51,14 @@ function InfoCard({
   children: React.ReactNode;
 }) {
   return (
-    <View className="rounded-card bg-surface p-5">
-      <Title size="sm" className="mb-3">
-        {title}
-      </Title>
-      {children}
-    </View>
+    <GradientFill variant="card" rounded>
+      <View className="p-5">
+        <Title size="sm" className="mb-3">
+          {title}
+        </Title>
+        {children}
+      </View>
+    </GradientFill>
   );
 }
 
@@ -57,6 +66,7 @@ export default function EletropostoDetalheScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
   const { alternarFavorito, ehFavorito } = useFavoritos();
+  const { veiculo } = useVeiculoAtivo();
   const [eletroposto, setEletroposto] = useState<Eletroposto | null>(null);
   const [avaliacoes, setAvaliacoes] = useState<Avaliacao[]>([]);
   const [carregando, setCarregando] = useState(true);
@@ -94,32 +104,57 @@ export default function EletropostoDetalheScreen() {
 
   if (carregando || !eletroposto) {
     return (
-      <View className="flex-1 items-center justify-center bg-background">
-        <ActivityIndicator color={colors.textPrimary} />
+      <View
+        className="flex-1 items-center justify-center"
+        accessibilityRole="progressbar"
+        accessibilityLabel="Carregando">
+        <GradientBackground />
+        <ActivityIndicator accessible={false} color={colors.textPrimary} />
       </View>
     );
   }
 
+  const explicacaoCompatibilidade = obterExplicacaoCompatibilidade(
+    eletroposto.nivelCompatibilidade,
+    eletroposto.pontuacaoCompatibilidade,
+    eletroposto.conectores,
+    veiculo?.tiposConector,
+  );
+
+  const ctaFadeHeight = layout.fadeHeight + insets.bottom + layout.ctaHeight;
+
   return (
-    <View className="flex-1 bg-background">
+    <View className="flex-1">
+      <GradientBackground />
       <ScrollView
+        style={{ backgroundColor: 'transparent' }}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: layout.ctaHeight + insets.bottom + 16 }}>
+        contentContainerStyle={{ paddingBottom: ctaFadeHeight + 16 }}>
         <View style={{ height: layout.heroImageHeight }}>
           <Image
             source={{ uri: eletroposto.imagemUrl }}
             style={{ width: '100%', height: '100%' }}
             contentFit="cover"
+            accessibilityRole="image"
+            accessibilityLabel={`Foto do ${eletroposto.nome}`}
           />
           <Pressable
             className="absolute left-4 h-10 w-10 items-center justify-center rounded-full bg-surface/90"
             style={{ top: insets.top + 8, zIndex: 50 }}
+            accessibilityRole="button"
+            accessibilityLabel="Voltar"
+            accessibilityHint="Retorna à tela anterior"
+            hitSlop={HIT_SLOP_PADRAO}
             onPress={() => router.back()}>
-            <ArrowLeft size={20} color={colors.textPrimary} />
+            <ArrowLeft accessible={false} size={20} color={colors.textPrimary} />
           </Pressable>
           <Pressable
             className="absolute right-4 h-10 w-10 items-center justify-center rounded-full bg-surface/90"
             style={{ top: insets.top + 8, zIndex: 50 }}
+            accessibilityRole="button"
+            accessibilityLabel={favorito ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
+            accessibilityState={{ selected: favorito }}
+            hitSlop={HIT_SLOP_PADRAO}
             onPress={toggleFavorito}>
             <Heart
               size={20}
@@ -129,7 +164,7 @@ export default function EletropostoDetalheScreen() {
           </Pressable>
         </View>
 
-        <View className="px-6 pt-5">
+        <View style={styles.infoSection}>
           <Text className="font-poppins-bold text-2xl tracking-title text-text-primary">{eletroposto.nome}</Text>
           <View className="mt-2 flex-row items-center justify-between">
             <Rating nota={eletroposto.nota} quantidadeAvaliacoes={eletroposto.quantidadeAvaliacoes} />
@@ -151,8 +186,8 @@ export default function EletropostoDetalheScreen() {
                   {eletroposto.pontuacaoCompatibilidade}%
                 </Text>
               </View>
-              <Text className="mt-2 font-poppins text-sm text-text-secondary">
-                Compatível com seu veículo ativo
+              <Text className="mt-3 font-poppins text-base leading-6 text-text-primary">
+                {explicacaoCompatibilidade}
               </Text>
             </InfoCard>
 
@@ -234,41 +269,68 @@ export default function EletropostoDetalheScreen() {
               </Text>
             </InfoCard>
 
-            <InfoCard title="Avaliações">
+            <View>
+              <Title size="sm" className="mb-3">
+                Avaliações
+              </Title>
               {avaliacoes.length === 0 ? (
                 <Text className="font-poppins text-sm text-text-muted">Sem avaliações ainda.</Text>
               ) : (
-                <View className="gap-4">
-                  {avaliacoes.map((av) => (
-                    <View key={av.id} className="border-b border-border pb-3 last:border-0">
-                      <View className="flex-row items-center justify-between">
-                        <Text className="font-poppins text-sm font-medium text-text-primary">
-                          {av.nomeUsuario}
-                        </Text>
-                        <Rating nota={av.nota} />
-                      </View>
-                      <Text className="mt-1 font-poppins text-sm text-text-secondary">
-                        {av.comentario}
-                      </Text>
-                    </View>
-                  ))}
-                </View>
+                <ReviewsCarousel data={avaliacoes} />
               )}
-            </InfoCard>
+            </View>
           </View>
         </View>
       </ScrollView>
 
-      <View
-        className="absolute bottom-0 left-0 right-0 border-t border-border bg-background px-6 pt-3"
-        style={{ paddingBottom: insets.bottom + 12, height: layout.ctaHeight + insets.bottom }}>
-        <Button
-          label="Seguir Rota"
-          onPress={() => Alert.alert('Rota', 'Navegação iniciada (simulada).')}
-          className="h-[56px]"
+      <View pointerEvents="box-none" style={styles.ctaArea}>
+        <ContentFade
+          edge="bottom"
+          gradientId="eletropostoCtaFade"
+          height={ctaFadeHeight}
+          style={styles.ctaFade}
         />
+        <View
+          style={[
+            styles.ctaButtonWrap,
+            { paddingBottom: insets.bottom + 12 },
+          ]}>
+          <Button
+            label="Seguir Rota"
+            onPress={() => Alert.alert('Rota', 'Navegação iniciada (simulada).')}
+            className="h-[56px]"
+          />
+        </View>
       </View>
-      <ScreenEdgeFades />
+      <ScreenTopFade />
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  infoSection: {
+    marginTop: -layout.cardRadius,
+    paddingTop: 20,
+    paddingHorizontal: layout.paddingHorizontal,
+    backgroundColor: colors.backgroundEnd,
+    borderTopLeftRadius: layout.cardRadius,
+    borderTopRightRadius: layout.cardRadius,
+  },
+  ctaArea: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 50,
+  },
+  ctaFade: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  ctaButtonWrap: {
+    paddingHorizontal: layout.paddingHorizontal,
+    paddingTop: 12,
+  },
+});

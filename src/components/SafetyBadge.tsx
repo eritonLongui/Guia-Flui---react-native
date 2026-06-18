@@ -1,6 +1,6 @@
-import { cn } from '@/lib/cn';
+import { chipBadge } from '@/constants/chipBadge';
 import type { NivelSeguranca } from '@/types';
-import { Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 const labels: Record<NivelSeguranca, string> = {
   seguro: 'Seguro',
@@ -15,8 +15,13 @@ interface SafetyBadgeProps {
 
 export function SafetyBadge({ nivel, className }: SafetyBadgeProps) {
   return (
-    <View className={cn('self-start rounded-full bg-elevated px-3 py-1', className)}>
-      <Text className="font-poppins text-xs font-semibold text-text-primary">{labels[nivel]}</Text>
+    <View style={styles.chip} className={className}>
+      <Text style={styles.label}>{labels[nivel]}</Text>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  chip: chipBadge.container,
+  label: chipBadge.label,
+});

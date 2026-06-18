@@ -1,17 +1,35 @@
 export const colors = {
-  background: '#1E1E1E',
-  surface: '#303030',
-  elevated: '#3A3A3A',
+  /** Fallback sólido — extremo inferior do gradiente de fundo. */
+  background: '#131313',
+  backgroundStart: '#151617',
+  backgroundEnd: '#131313',
+  /** Fallback sólido — extremo inferior do gradiente de cards. */
+  surface: '#1E1E1F',
+  surfaceStart: '#282829',
+  surfaceEnd: '#1E1E1F',
+  /** Elementos elevados (chips, tab bar) — tom intermediário da paleta de cards. */
+  elevated: '#252526',
   border: '#4A4A4A',
-  accent: '#33FE4F',
-  accentBorder: 'rgba(51, 254, 79, 0.45)',
+  accent: '#31FE50',
+  accentDark: '#234A29',
+  accentBorder: 'rgba(49, 254, 80, 0.45)',
   textPrimary: '#FFFFFF',
   textSecondary: '#C7C7C7',
   textMuted: '#8A8A8A',
-  success: '#33FE4F',
+  /** Texto de chips/tags neutras — contraste sobre fundo elevated. */
+  chipText: '#F0F0F0',
+  chipBackground: 'rgba(255, 255, 255, 0.1)',
+  chipBorder: 'rgba(255, 255, 255, 0.16)',
+  success: '#31FE50',
   warning: '#FFB800',
   danger: '#FF6B6B',
   info: '#5AC8FA',
+} as const;
+
+/** Gradientes verticais (topo → base) do design system. */
+export const gradients = {
+  background: [colors.backgroundStart, colors.backgroundEnd] as const,
+  card: [colors.surfaceStart, colors.surfaceEnd] as const,
 } as const;
 
 export const spacing = {
@@ -47,6 +65,8 @@ export const layout = {
   buttonRadius: 12,
   /** Altura fixa dos cards no carrossel da Home. */
   carouselCardHeight: 220,
+  /** Altura fixa dos cards de avaliação no carrossel do detalhe. */
+  reviewCardHeight: 156,
   carouselTitleHeight: 56,
   /** Altura do fade inferior padronizado em todas as telas. */
   fadeHeight: 72,

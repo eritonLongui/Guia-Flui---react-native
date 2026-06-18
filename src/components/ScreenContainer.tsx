@@ -1,6 +1,7 @@
 import { cn } from '@/lib/cn';
+import { GradientBackground } from '@/components/GradientFill';
 import { ScreenEdgeFades } from '@/components/ScreenEdgeFades';
-import { colors, layout } from '@/constants/theme';
+import { layout } from '@/constants/theme';
 import { ScrollView, View, type ViewProps } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -22,7 +23,7 @@ export function ScreenContainer({
 
   const content = (
     <View
-      className={cn('flex-1 bg-background', !noPadding && 'px-6', className)}
+      className={cn('flex-1', !noPadding && 'px-6', className)}
       style={{ paddingTop: insets.top }}
       {...props}>
       {children}
@@ -31,10 +32,11 @@ export function ScreenContainer({
 
   if (scroll) {
     return (
-      <View className="flex-1 bg-background">
+      <View className="flex-1">
+        <GradientBackground />
         <ScrollView
-          className="flex-1 bg-background"
-          style={{ backgroundColor: colors.background }}
+          className="flex-1"
+          style={{ backgroundColor: 'transparent' }}
           contentContainerStyle={{
             paddingTop: insets.top,
             paddingHorizontal: noPadding ? 0 : layout.paddingHorizontal,
@@ -48,5 +50,11 @@ export function ScreenContainer({
     );
   }
 
-  return content;
+  return (
+    <View className="flex-1">
+      <GradientBackground />
+      {content}
+      <ScreenEdgeFades />
+    </View>
+  );
 }

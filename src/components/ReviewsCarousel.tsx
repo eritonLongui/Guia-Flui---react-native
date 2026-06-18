@@ -1,21 +1,20 @@
-import { StationCard } from '@/components/StationCard';
+import { ReviewCard } from '@/components/ReviewCard';
 import { layout, spacing } from '@/constants/theme';
-import type { Eletroposto } from '@/types';
+import type { Avaliacao } from '@/types';
 import { useMemo } from 'react';
 import { Dimensions, FlatList, StyleSheet, View } from 'react-native';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const H_PADDING = layout.paddingHorizontal;
 const CARD_GAP = spacing.md;
-const CARD_WIDTH = SCREEN_WIDTH - H_PADDING * 2;
+const CARD_WIDTH = SCREEN_WIDTH - H_PADDING * 2 - spacing.xl;
 const SNAP_INTERVAL = CARD_WIDTH + CARD_GAP;
 
-interface StationCarouselProps {
-  data: Eletroposto[];
-  onSelect: (eletroposto: Eletroposto) => void;
+interface ReviewsCarouselProps {
+  data: Avaliacao[];
 }
 
-export function StationCarousel({ data, onSelect }: StationCarouselProps) {
+export function ReviewsCarousel({ data }: ReviewsCarouselProps) {
   const snapToOffsets = useMemo(
     () => data.map((_, index) => index * SNAP_INTERVAL),
     [data],
@@ -31,13 +30,13 @@ export function StationCarousel({ data, onSelect }: StationCarouselProps) {
       snapToOffsets={snapToOffsets}
       snapToAlignment="start"
       keyExtractor={(item) => item.id}
-      accessibilityLabel="Eletropostos perto de você"
+      accessibilityLabel="Avaliações do eletroposto"
       style={styles.list}
       contentContainerStyle={styles.content}
       ItemSeparatorComponent={() => <View style={styles.separator} />}
       renderItem={({ item }) => (
         <View style={styles.slide}>
-          <StationCard carousel eletroposto={item} onPress={() => onSelect(item)} />
+          <ReviewCard avaliacao={item} />
         </View>
       )}
     />
@@ -53,7 +52,7 @@ const styles = StyleSheet.create({
   },
   slide: {
     width: CARD_WIDTH,
-    height: layout.carouselCardHeight,
+    height: layout.reviewCardHeight,
   },
   separator: {
     width: CARD_GAP,

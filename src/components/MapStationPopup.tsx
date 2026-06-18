@@ -1,6 +1,8 @@
 import { Button } from '@/components/Button';
 import { CompatibilityBadge } from '@/components/CompatibilityBadge';
+import { GradientFill } from '@/components/GradientFill';
 import { colors } from '@/constants/theme';
+import { HIT_SLOP_PADRAO } from '@/lib/a11y';
 import { formatarDistancia } from '@/lib/formatadores';
 import type { Eletroposto } from '@/types';
 import { MapPin, X } from 'lucide-react-native';
@@ -15,13 +17,15 @@ interface MapStationPopupProps {
 export function MapStationPopup({ eletroposto, onClose, onVerMais }: MapStationPopupProps) {
   return (
     <View style={styles.container} pointerEvents="box-none">
-      <View style={styles.card}>
+      <GradientFill variant="card" rounded style={styles.card}>
         <Pressable
+          accessibilityRole="button"
           accessibilityLabel="Fechar"
-          hitSlop={12}
+          accessibilityHint="Fecha o resumo do eletroposto no mapa"
+          hitSlop={HIT_SLOP_PADRAO}
           onPress={onClose}
           style={styles.closeButton}>
-          <X size={18} color={colors.textMuted} />
+          <X accessible={false} size={18} color={colors.textMuted} />
         </Pressable>
 
         <View style={styles.header}>
@@ -44,9 +48,13 @@ export function MapStationPopup({ eletroposto, onClose, onVerMais }: MapStationP
         </Text>
 
         <View className="mt-4">
-          <Button label="Ver mais" onPress={onVerMais} />
+          <Button
+            label="Ver mais"
+            accessibilityHint="Abre os detalhes completos do eletroposto"
+            onPress={onVerMais}
+          />
         </View>
-      </View>
+      </GradientFill>
     </View>
   );
 }
@@ -60,8 +68,6 @@ const styles = StyleSheet.create({
     zIndex: 8,
   },
   card: {
-    borderRadius: 16,
-    backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
     padding: 16,

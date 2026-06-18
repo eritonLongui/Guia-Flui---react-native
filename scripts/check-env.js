@@ -119,6 +119,26 @@ if (fs.existsSync(path.join(ROOT, 'node_modules'))) {
   warn('node_modules ausente — rode npm run setup');
 }
 
+const envPath = path.join(ROOT, '.env');
+if (fs.existsSync(envPath)) {
+  const envContent = fs.readFileSync(envPath, 'utf8');
+  if (envContent.includes('GOOGLE_MAPS_API_KEY=') && !envContent.match(/GOOGLE_MAPS_API_KEY=.+/)) {
+    warn('.env sem GOOGLE_MAPS_API_KEY — mapa pode não carregar no dev build/APK');
+  } else {
+    pass('.env configurado');
+  }
+} else if (fs.existsSync(path.join(ROOT, '.env.example'))) {
+  warn('.env ausente — rode npm run setup ou cp .env.example .env');
+}
+
+const hasIos = fs.existsSync(path.join(ROOT, 'ios'));
+const hasAndroid = fs.existsSync(path.join(ROOT, 'android'));
+if (hasIos || hasAndroid) {
+  pass(`Pastas nativas: ${[hasIos && 'ios', hasAndroid && 'android'].filter(Boolean).join(', ')}`);
+} else {
+  warn('Pastas ios/ e android/ ausentes — normal no clone; use npm run prebuild antes do dev build');
+}
+
 const optional = [
   { name: 'git', hint: 'controle de versão' },
   { name: 'watchman', hint: 'recomendado no macOS para Metro bundler' },

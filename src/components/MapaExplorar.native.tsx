@@ -1,5 +1,6 @@
 import { MapMarkerPin } from '@/components/MapMarkerPin';
 import { UserLocationPulse } from '@/components/UserLocationPulse';
+import { criarRotuloEletroposto } from '@/lib/a11y';
 import { mapGrayscaleStyle } from '@/constants/mapGrayscaleStyle';
 import { localizacaoUsuarioMock } from '@/data/mock';
 import { usuarioRepository } from '@/repositories/mockRepositories';
@@ -100,7 +101,8 @@ export function MapaExplorar({
             }}
             anchor={{ x: 0.5, y: 0.5 }}
             tracksViewChanges
-            identifier="user-location">
+            identifier="user-location"
+            accessibilityLabel="Sua localização">
             <UserLocationPulse />
           </Marker>
         )}
@@ -110,6 +112,9 @@ export function MapaExplorar({
             coordinate={{ latitude: ep.latitude, longitude: ep.longitude }}
             anchor={{ x: 0.5, y: 0.5 }}
             tracksViewChanges={tracksViewChanges}
+            title={ep.nome}
+            description={criarRotuloEletroposto(ep)}
+            accessibilityLabel={criarRotuloEletroposto(ep)}
             onPress={() => onSelectMarker(ep.id)}
             onCalloutPress={() => onOpenDetalhe(ep)}>
             <MapMarkerPin selected={selecionado === ep.id} />

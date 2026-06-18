@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   blurFallback: {
-    backgroundColor: 'rgba(48, 48, 48, 0.92)',
+    backgroundColor: 'rgba(30, 30, 31, 0.92)',
   },
   inner: {
     flexDirection: 'row',

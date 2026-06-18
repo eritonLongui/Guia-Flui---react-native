@@ -1,15 +1,21 @@
-import { cn } from '@/lib/cn';
-import { Text, View } from 'react-native';
+import { chipBadge } from '@/constants/chipBadge';
+import { StyleSheet, Text, View, type ViewStyle } from 'react-native';
 
 interface FeatureChipProps {
   label: string;
   className?: string;
+  style?: ViewStyle;
 }
 
-export function FeatureChip({ label, className }: FeatureChipProps) {
+export function FeatureChip({ label, className, style }: FeatureChipProps) {
   return (
-    <View className={cn('rounded-full bg-elevated px-3 py-1.5', className)}>
-      <Text className="font-poppins text-sm text-text-secondary">{label}</Text>
+    <View style={[styles.chip, style]} className={className}>
+      <Text style={styles.label}>{label}</Text>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  chip: chipBadge.container,
+  label: chipBadge.label,
+});

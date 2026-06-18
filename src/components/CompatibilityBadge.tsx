@@ -1,4 +1,5 @@
 import { cn } from '@/lib/cn';
+import { criarRotuloCompatibilidade } from '@/lib/a11y';
 import type { NivelCompatibilidade } from '@/types';
 import { StyleSheet, Text, View } from 'react-native';
 
@@ -9,7 +10,7 @@ const labels: Record<NivelCompatibilidade, string> = {
 };
 
 const containerStyles: Record<NivelCompatibilidade, string> = {
-  compativel: 'bg-accent/20',
+  compativel: 'bg-accent-dark/40',
   parcial: 'bg-warning/20',
   incompativel: 'bg-danger/20',
 };
@@ -27,8 +28,13 @@ interface CompatibilityBadgeProps {
 
 export function CompatibilityBadge({ nivel, className }: CompatibilityBadgeProps) {
   return (
-    <View style={styles.badge} className={cn('px-3 py-1', containerStyles[nivel], className)}>
+    <View
+      style={styles.badge}
+      accessibilityRole="text"
+      accessibilityLabel={criarRotuloCompatibilidade(nivel)}
+      className={cn('px-3 py-1', containerStyles[nivel], className)}>
       <Text
+        accessible={false}
         className={cn(
           'font-poppins-bold text-xs uppercase tracking-badge',
           textStyles[nivel],

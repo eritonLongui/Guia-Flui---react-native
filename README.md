@@ -13,7 +13,9 @@ npm run setup
 npm start
 ```
 
-O comando `setup` instala dependências, valida o ambiente e verifica o TypeScript automaticamente.
+O comando `setup` instala dependências, cria `.env` se necessário, valida o ambiente e verifica o TypeScript automaticamente.
+
+📖 **Guia completo de build (iOS, Android, APK):** [docs/SETUP.md](docs/SETUP.md)
 
 **Alternativa via shell (macOS/Linux):**
 
@@ -68,19 +70,21 @@ Arquivos de referência: [`.nvmrc`](.nvmrc) e [`.tool-versions`](.tool-versions)
 |---------|-----------|
 | `npm start` | Inicia o Metro bundler + Expo Dev Tools |
 | `npm run start:clear` | Inicia limpando o cache do Metro |
-| `npm run ios` | Abre no simulador iOS |
-| `npm run android` | Abre no emulador Android |
+| `npm run ios` | Dev build no simulador iOS (porta 8083) |
+| `npm run ios:open` | Reabre o app no simulador (Metro deve estar rodando) |
+| `npm run android` | Dev build no emulador Android (porta 8083) |
 | `npm run web` | Abre no navegador (mapa com fallback de lista) |
 
-### Build nativo (opcional)
+### Build e distribuição
 
 | Comando | Descrição |
 |---------|-----------|
 | `npm run prebuild` | Gera pastas `ios/` e `android/` |
 | `npm run prebuild:clean` | Regenera nativo do zero |
+| `npm run build:apk` | **APK na nuvem (EAS)** — instalar no Android para testar |
+| `npm run build:apk:local` | APK local via EAS (requer Android SDK) |
 | `npm run build:ios` | Compila e roda no simulador/dispositivo iOS |
 | `npm run build:android` | Compila e roda no emulador/dispositivo Android |
-| `npm run ios:open` | Abre o app já instalado no simulador (Metro deve estar rodando) |
 
 ### Simulador iOS (dev build)
 
@@ -98,6 +102,15 @@ npm run ios:open
 ```
 
 > **Erro "No script URL provided"?** O Metro não estava rodando ou a porta estava errada. Confirme com `curl http://127.0.0.1:8083/status` — deve retornar `packager-status:running`.
+
+### APK para testar no Android (sem Android Studio)
+
+```bash
+npx eas-cli login          # uma vez
+npm run build:apk          # gera APK na nuvem — link para download no final
+```
+
+Detalhes, secrets do Google Maps e troubleshooting: **[docs/SETUP.md](docs/SETUP.md)**.
 
 
 ---

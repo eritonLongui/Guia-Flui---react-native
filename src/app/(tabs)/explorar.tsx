@@ -5,6 +5,7 @@ import { Input } from '@/components/Input';
 import { MapStationPopup } from '@/components/MapStationPopup';
 import { MapaExplorar } from '@/components/MapaExplorar';
 import { colors, layout, spacing } from '@/constants/theme';
+import { HIT_SLOP_PADRAO, anunciarMensagem } from '@/lib/a11y';
 import { eletropostoRepository } from '@/repositories/mockRepositories';
 import type { Eletroposto } from '@/types';
 import { router } from 'expo-router';
@@ -26,7 +27,13 @@ export default function ExplorarScreen() {
       const dados = busca
         ? await eletropostoRepository.buscar(busca)
         : await eletropostoRepository.listar();
-      if (mounted) setEletropostos(dados);
+      if (!mounted) return;
+      setEletropostos(dados);
+      if (busca.trim()) {
+        anunciarMensagem(
+          `${dados.length} ${dados.length === 1 ? 'resultado encontrado' : 'resultados encontrados'}`,
+        );
+      }
     }, 150);
 
     return () => {
@@ -62,8 +69,12 @@ export default function ExplorarScreen() {
           </View>
         <Pressable
           style={styles.filterButton}
+          accessibilityRole="button"
+          accessibilityLabel="Filtros"
+          accessibilityHint="Abre opções de filtro dos eletropostos"
+          hitSlop={HIT_SLOP_PADRAO}
           onPress={() => Alert.alert('Filtros', 'Filtros disponíveis em breve.')}>
-          <SlidersHorizontal size={20} color={colors.textPrimary} />
+          <SlidersHorizontal accessible={false} size={20} color={colors.textPrimary} />
         </Pressable>
         </View>
         <View className="flex-1 items-center justify-center">
@@ -91,6 +102,9 @@ export default function ExplorarScreen() {
       </View>
     );
   }
+
+  const searchTopInset =
+    insets.top + spacing.lg + layout.searchHeight + spacing.md;
 
   return (
     <View style={styles.container}>
@@ -124,12 +138,20 @@ export default function ExplorarScreen() {
         </View>
         <Pressable
           style={styles.filterButton}
+          accessibilityRole="button"
+          accessibilityLabel="Filtros"
+          accessibilityHint="Abre opções de filtro dos eletropostos"
+          hitSlop={HIT_SLOP_PADRAO}
           onPress={() => Alert.alert('Filtros', 'Filtros disponíveis em breve.')}>
-          <SlidersHorizontal size={20} color={colors.textPrimary} />
+          <SlidersHorizontal accessible={false} size={20} color={colors.textPrimary} />
         </Pressable>
       </View>
 
-      <ExploreBottomSheet eletropostos={eletropostos} onSelect={handleSelect} />
+      <ExploreBottomSheet
+        eletropostos={eletropostos}
+        onSelect={handleSelect}
+        topInset={searchTopInset}
+      />
       <ScreenEdgeFades />
     </View>
   );
@@ -164,6 +186,6 @@ const styles = StyleSheet.create({
     borderRadius: layout.inputRadius,
     borderWidth: 1,
     borderColor: colors.border,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceEnd,
   },
 });

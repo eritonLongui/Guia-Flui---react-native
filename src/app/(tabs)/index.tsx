@@ -1,5 +1,6 @@
 import { Title } from '@/components/Title';
 import { Button } from '@/components/Button';
+import { GradientFill } from '@/components/GradientFill';
 import { ScreenContainer } from '@/components/ScreenContainer';
 import { StationCarousel } from '@/components/StationCarousel';
 import { StationCard } from '@/components/StationCard';
@@ -14,7 +15,7 @@ import {
 import type { Eletroposto, Rota, Usuario } from '@/types';
 import { router } from 'expo-router';
 import { Lightbulb, Route, User } from 'lucide-react-native';
-import { colors } from '@/constants/theme';
+import { colors, spacing } from '@/constants/theme';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Image, StyleSheet, Text, View } from 'react-native';
 
@@ -56,8 +57,11 @@ export default function HomeScreen() {
   return (
     <ScreenContainer scroll>
       {carregandoTela ? (
-        <View className="min-h-[50%] flex-1 items-center justify-center py-24">
-          <ActivityIndicator color={colors.textPrimary} />
+        <View
+          className="min-h-[50%] flex-1 items-center justify-center py-24"
+          accessibilityRole="progressbar"
+          accessibilityLabel="Carregando">
+          <ActivityIndicator accessible={false} color={colors.textPrimary} />
         </View>
       ) : (
         <>
@@ -83,20 +87,21 @@ export default function HomeScreen() {
           </View>
 
           {veiculo && (
-            <View className="mt-6">
+            <View style={styles.section}>
               <VehicleCard veiculo={veiculo} />
             </View>
           )}
 
-          <View className="mt-6">
+          <View style={styles.section}>
             <Button
               label="Encontrar Recarga"
+              accessibilityHint="Abre o mapa para buscar eletropostos"
               onPress={() => router.push('/(tabs)/explorar')}
             />
           </View>
 
-          <View className="mt-8">
-            <Title size="sm" className="mb-3">
+          <View style={styles.section}>
+            <Title size="sm" style={styles.sectionTitle}>
               Perto de Você
             </Title>
             <StationCarousel
@@ -106,8 +111,8 @@ export default function HomeScreen() {
           </View>
 
           {recomendado && (
-            <View className="mt-8">
-              <Title size="sm" className="mb-3">
+            <View style={styles.section}>
+              <Title size="sm" style={styles.sectionTitle}>
                 Recomendado para Você
               </Title>
               <StationCard
@@ -118,34 +123,41 @@ export default function HomeScreen() {
           )}
 
           {ultimaRota && (
-            <View className="mt-8 rounded-card bg-surface p-5">
-              <View className="mb-3 flex-row items-center gap-2">
-                <Route size={18} color={colors.textPrimary} />
-                <Title size="lg" className="shrink-0">
-                  Última Rota
-                </Title>
+            <GradientFill variant="card" rounded style={styles.section}>
+              <View className="p-5">
+                <View className="mb-3 flex-row items-center gap-2">
+                  <Route size={18} color={colors.textPrimary} />
+                  <Title size="lg" className="shrink-0">
+                    Última Rota
+                  </Title>
+                </View>
+                <Text className="font-poppins text-base text-text-secondary">
+                  {ultimaRota.origem} → {ultimaRota.destino}
+                </Text>
+                <Text className="mt-2 font-poppins text-base text-text-primary">
+                  {ultimaRota.distanciaEstimada} · {ultimaRota.tempoEstimado}
+                </Text>
               </View>
-              <Text className="font-poppins text-base text-text-secondary">
-                {ultimaRota.origem} → {ultimaRota.destino}
-              </Text>
-              <Text className="mt-2 font-poppins text-base text-text-primary">
-                {ultimaRota.distanciaEstimada} · {ultimaRota.tempoEstimado}
-              </Text>
-            </View>
+            </GradientFill>
           )}
 
-          <View className="mt-8 rounded-card bg-elevated p-5">
-            <View className="mb-3 flex-row items-center gap-2">
-              <Lightbulb size={18} color={colors.textPrimary} />
-              <Title size="lg" className="shrink-0">
-                Dica de Recarga
-              </Title>
+          <GradientFill
+            variant="card"
+            rounded
+            style={ultimaRota ? styles.stackedCard : styles.section}>
+            <View className="p-5">
+              <View className="mb-3 flex-row items-center gap-2">
+                <Lightbulb size={18} color={colors.textPrimary} />
+                <Title size="lg" className="shrink-0">
+                  Dica de Recarga
+                </Title>
+              </View>
+              <Text className="font-poppins text-base leading-6 text-text-secondary">
+                Carregue até 80% em viagens longas para preservar a bateria e reduzir o tempo de
+                espera na fila.
+              </Text>
             </View>
-            <Text className="font-poppins text-base leading-6 text-text-secondary">
-              Carregue até 80% em viagens longas para preservar a bateria e reduzir o tempo de
-              espera na fila.
-            </Text>
-          </View>
+          </GradientFill>
         </>
       )}
     </ScreenContainer>
@@ -171,5 +183,14 @@ const styles = StyleSheet.create({
   userName: {
     fontFamily: 'LexendGiga_600SemiBold',
     letterSpacing: 2,
+  },
+  section: {
+    marginTop: spacing.xxl,
+  },
+  sectionTitle: {
+    marginBottom: spacing.md,
+  },
+  stackedCard: {
+    marginTop: spacing.xl,
   },
 });

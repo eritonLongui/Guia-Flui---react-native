@@ -15,7 +15,15 @@ const variantStyles: Record<ButtonVariant, { container: string; text: string }> 
   ghost: { container: 'bg-transparent', text: 'text-text-primary' },
 };
 
-export function Button({ variant = 'primary', label, className, disabled, ...props }: ButtonProps) {
+export function Button({
+  variant = 'primary',
+  label,
+  className,
+  disabled,
+  accessibilityLabel,
+  accessibilityHint,
+  ...props
+}: ButtonProps) {
   const styles = variantStyles[variant];
   return (
     <Pressable
@@ -26,8 +34,16 @@ export function Button({ variant = 'primary', label, className, disabled, ...pro
         className,
       )}
       disabled={disabled}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel ?? label}
+      accessibilityHint={accessibilityHint}
+      accessibilityState={{ disabled: !!disabled }}
       {...props}>
-      <Text className={cn('font-poppins-bold text-base uppercase', styles.text)}>{label}</Text>
+      <Text
+        accessible={false}
+        className={cn('font-poppins-bold text-base uppercase', styles.text)}>
+        {label}
+      </Text>
     </Pressable>
   );
 }

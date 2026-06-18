@@ -1,7 +1,9 @@
 import { CompatibilityBadge } from '@/components/CompatibilityBadge';
 import { FeatureChip } from '@/components/FeatureChip';
+import { GradientFill } from '@/components/GradientFill';
+import { OpenNowBadge } from '@/components/OpenNowBadge';
+import { criarRotuloEletroposto } from '@/lib/a11y';
 import { formatarDistancia } from '@/lib/formatadores';
-import { cn } from '@/lib/cn';
 import type { Eletroposto } from '@/types';
 import { Clock, MapPin, Zap } from 'lucide-react-native';
 import { colors, layout } from '@/constants/theme';
@@ -12,7 +14,6 @@ interface StationCardProps {
   onPress?: () => void;
   compact?: boolean;
   carousel?: boolean;
-  className?: string;
 }
 
 export function StationCard({
@@ -20,66 +21,73 @@ export function StationCard({
   onPress,
   compact = false,
   carousel = false,
-  className,
 }: StationCardProps) {
   const content = (
-    <View
-      className={cn('rounded-card bg-surface p-4', className)}
-      style={[
-        styles.card,
-        carousel && styles.carouselCard,
-        !carousel && !compact && styles.defaultCard,
-      ]}>
-      <View className="flex-row items-center justify-between">
-        <CompatibilityBadge nivel={eletroposto.nivelCompatibilidade} />
-        {eletroposto.distanciaKm !== undefined && (
-          <View style={styles.row}>
-            <MapPin size={17} color={colors.textPrimary} />
-            <Text style={styles.iconTextGap} className="font-poppins text-base text-text-primary">
-              {formatarDistancia(eletroposto.distanciaKm)}
+    <GradientFill
+      variant="card"
+      rounded
+      style={[styles.card, carousel && styles.carouselCard]}>
+      <View
+        style={[styles.inner, carousel && styles.innerFixed]}
+        accessible={false}
+        importantForAccessibility="no">
+        <View style={styles.header}>
+          <CompatibilityBadge nivel={eletroposto.nivelCompatibilidade} />
+          {eletroposto.distanciaKm !== undefined && (
+            <View style={styles.row}>
+              <MapPin accessible={false} size={17} color={colors.textPrimary} />
+              <Text style={styles.iconTextGap} className="font-poppins text-base text-text-primary">
+                {formatarDistancia(eletroposto.distanciaKm)}
+              </Text>
+            </View>
+          )}
+        </View>
+
+        <View style={[styles.body, carousel && styles.bodyFixed]}>
+          <View style={styles.topBlock}>
+            <Text
+              style={styles.eletropostoName}
+              className="font-poppins-bold text-2xl text-text-primary"
+              numberOfLines={2}>
+              {eletroposto.nome}
             </Text>
+            <View style={styles.stats}>
+              <View style={styles.row}>
+                <Clock accessible={false} size={17} color={colors.textPrimary} />
+                <Text style={styles.iconTextGap} className="font-poppins text-base text-text-secondary">
+                  Fila {eletroposto.tempoFilaMinutos}min
+                </Text>
+              </View>
+              <View style={[styles.row, styles.groupGap]}>
+                <Zap accessible={false} size={17} color={colors.textPrimary} />
+                <Text style={styles.iconTextGap} className="font-poppins text-base text-text-secondary">
+                  {eletroposto.tempoCargaMinutos}min
+                </Text>
+              </View>
+            </View>
           </View>
-        )}
-      </View>
 
-      <View style={styles.titleBlock}>
-        <Text
-          style={styles.eletropostoName}
-          className="font-poppins-bold text-2xl text-text-primary"
-          numberOfLines={2}>
-          {eletroposto.nome}
-        </Text>
-      </View>
-
-      <View style={styles.stats}>
-        <View style={styles.row}>
-          <Clock size={17} color={colors.textPrimary} />
-          <Text style={styles.iconTextGap} className="font-poppins text-base text-text-secondary">
-            Fila {eletroposto.tempoFilaMinutos}min
-          </Text>
-        </View>
-        <View style={[styles.row, styles.groupGap]}>
-          <Zap size={17} color={colors.textPrimary} />
-          <Text style={styles.iconTextGap} className="font-poppins text-base text-text-secondary">
-            {eletroposto.tempoCargaMinutos}min
-          </Text>
+          {!compact && (
+            <View style={styles.chipsRow}>
+              {eletroposto.abertoAgora && <OpenNowBadge />}
+              {eletroposto.conectores.map((c) => (
+                <FeatureChip key={c.tipo} label={c.tipo} />
+              ))}
+            </View>
+          )}
         </View>
       </View>
-
-      {!compact && (
-        <View style={[styles.chipsRow, styles.chipsBottom]}>
-          {eletroposto.conectores.map((c) => (
-            <FeatureChip key={c.tipo} label={c.tipo} />
-          ))}
-          {eletroposto.abertoAgora && <FeatureChip label="Aberto" />}
-        </View>
-      )}
-    </View>
+    </GradientFill>
   );
 
   if (onPress) {
     return (
-      <Pressable onPress={onPress} style={carousel ? styles.carouselPressable : undefined}>
+      <Pressable
+        onPress={onPress}
+        style={carousel ? styles.carouselPressable : undefined}
+        accessibilityRole="button"
+        accessibilityLabel={criarRotuloEletroposto(eletroposto)}
+        accessibilityHint="Abre os detalhes do eletroposto">
         {content}
       </Pressable>
     );
@@ -98,13 +106,26 @@ const styles = StyleSheet.create({
   carouselCard: {
     height: layout.carouselCardHeight,
   },
-  defaultCard: {
-    minHeight: layout.carouselCardHeight,
+  inner: {
+    padding: 16,
   },
-  titleBlock: {
+  innerFixed: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  body: {
     marginTop: 12,
-    minHeight: layout.carouselTitleHeight,
-    justifyContent: 'flex-start',
+  },
+  bodyFixed: {
+    flex: 1,
+    justifyContent: 'space-between',
+  },
+  topBlock: {
+    gap: 12,
   },
   eletropostoName: {
     letterSpacing: 1,
@@ -112,11 +133,14 @@ const styles = StyleSheet.create({
   stats: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 8,
   },
-  chipsBottom: {
-    marginTop: 'auto',
-    paddingTop: 16,
+  chipsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    alignItems: 'center',
+    alignSelf: 'stretch',
+    marginTop: 32,
   },
   row: {
     flexDirection: 'row',
@@ -127,10 +151,5 @@ const styles = StyleSheet.create({
   },
   groupGap: {
     marginLeft: 20,
-  },
-  chipsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
   },
 });

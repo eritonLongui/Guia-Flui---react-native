@@ -1,4 +1,5 @@
 import { ScreenContainer } from '@/components/ScreenContainer';
+import { GradientFill } from '@/components/GradientFill';
 import { VehicleCard } from '@/components/VehicleCard';
 import { colors } from '@/constants/theme';
 import { useMockMode } from '@/providers/MockModeProvider';
@@ -28,12 +29,15 @@ function MenuItem({ icon, label, onPress, trailing }: MenuItemProps) {
     <Pressable
       className="flex-row items-center justify-between border-b border-border py-4"
       onPress={onPress}
-      disabled={!onPress && !trailing}>
-      <View className="flex-row items-center gap-3">
+      disabled={!onPress && !trailing}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ disabled: !onPress && !trailing }}>
+      <View className="flex-row items-center gap-3" accessible={false} importantForAccessibility="no">
         {icon}
         <Text className="font-poppins text-base text-text-primary">{label}</Text>
       </View>
-      {trailing ?? (onPress ? <ChevronRight size={20} color={colors.textMuted} /> : null)}
+      {trailing ?? (onPress ? <ChevronRight accessible={false} size={20} color={colors.textMuted} /> : null)}
     </Pressable>
   );
 }
@@ -63,14 +67,17 @@ export default function PerfilScreen() {
   return (
     <ScreenContainer scroll>
       {carregandoTela ? (
-        <View className="min-h-[50%] flex-1 items-center justify-center py-24">
-          <ActivityIndicator color={colors.textPrimary} />
+        <View
+          className="min-h-[50%] flex-1 items-center justify-center py-24"
+          accessibilityRole="progressbar"
+          accessibilityLabel="Carregando">
+          <ActivityIndicator accessible={false} color={colors.textPrimary} />
         </View>
       ) : (
         <>
           <View className="items-center pt-6">
-            <View className="mb-4 h-20 w-20 items-center justify-center rounded-full bg-surface">
-              <User size={36} color={colors.textPrimary} />
+            <View className="mb-4 h-20 w-20 items-center justify-center rounded-full bg-elevated">
+              <User accessible={false} size={36} color={colors.textPrimary} />
             </View>
             <Text style={styles.userName} className="text-xl uppercase text-text-primary">
               {usuario?.nome}
@@ -84,7 +91,8 @@ export default function PerfilScreen() {
             </View>
           )}
 
-          <View className="mt-8 rounded-card bg-surface px-4">
+          <GradientFill variant="card" rounded style={{ marginTop: 32 }}>
+            <View className="px-4">
             <MenuItem
               icon={<Settings size={20} color={colors.textSecondary} />}
               label="Configurações"
@@ -95,6 +103,8 @@ export default function PerfilScreen() {
               label="Modo Mockado"
               trailing={
                 <Switch
+                  accessibilityLabel="Modo mockado"
+                  accessibilityHint="Alterna entre dados simulados e dados reais"
                   value={isMockMode}
                   onValueChange={toggleMockMode}
                   trackColor={{ false: colors.border, true: colors.accent }}
@@ -112,7 +122,8 @@ export default function PerfilScreen() {
               label="Privacidade"
               onPress={() => Alert.alert('Privacidade', 'Política de privacidade em breve.')}
             />
-          </View>
+            </View>
+          </GradientFill>
         </>
       )}
     </ScreenContainer>

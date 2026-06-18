@@ -11,16 +11,32 @@ interface InputProps extends TextInputProps {
   className?: string;
 }
 
-export function Input({ icon = false, className, placeholder, style, ...props }: InputProps) {
+export function Input({
+  icon = false,
+  className,
+  placeholder,
+  style,
+  accessibilityLabel,
+  ...props
+}: InputProps) {
   return (
     <View style={styles.container} className={cn(className)}>
-      {icon && <Search size={20} color={colors.textMuted} style={styles.icon} />}
+      {icon && (
+        <Search
+          accessible={false}
+          importantForAccessibility="no"
+          size={20}
+          color={colors.textMuted}
+          style={styles.icon}
+        />
+      )}
       <TextInput
         placeholder={placeholder}
         placeholderTextColor={colors.textMuted}
         cursorColor={colors.textPrimary}
         selectionColor={colors.textSecondary}
-        allowFontScaling={false}
+        accessibilityRole={icon ? 'search' : 'text'}
+        accessibilityLabel={accessibilityLabel ?? placeholder}
         style={[styles.input, style]}
         {...props}
       />
@@ -36,7 +52,7 @@ const styles = StyleSheet.create({
     borderRadius: layout.inputRadius,
     borderWidth: 1,
     borderColor: colors.border,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceEnd,
     paddingHorizontal: 16,
   },
   icon: {

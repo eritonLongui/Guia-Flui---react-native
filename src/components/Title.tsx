@@ -25,6 +25,7 @@ export function Title({ size = 'md', className, style, children, ...props }: Tit
         sizeClasses[size],
         className,
       )}
+      accessibilityRole="header"
       style={[styles.trackingCompensation, style]}
       {...props}>
       {children}

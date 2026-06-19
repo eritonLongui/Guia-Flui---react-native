@@ -2,7 +2,7 @@ import type { Avaliacao, Eletroposto, Favorito, Localizacao, Rota, Usuario, Veic
 
 export const usuarioMock: Usuario = {
   id: 'user-1',
-  nome: 'Marina Silva',
+  nome: 'SaLLein Caasi',
   email: 'marina.silva@email.com',
   avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop&q=80',
   reputacao: 4.8,

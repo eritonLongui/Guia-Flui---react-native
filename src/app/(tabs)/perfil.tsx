@@ -16,6 +16,7 @@ import {
 } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
+import { Image } from 'expo-image';
 
 interface MenuItemProps {
   icon: React.ReactNode;
@@ -76,8 +77,8 @@ export default function PerfilScreen() {
       ) : (
         <>
           <View className="items-center pt-6">
-            <View className="mb-4 h-20 w-20 items-center justify-center rounded-full bg-elevated">
-              <User accessible={false} size={36} color={colors.textPrimary} />
+            <View className="mb-4 h-20 w-20 items-center justify-center rounded-full bg-elevated overflow-hidden">
+              <Image source={require('../../../assets/images/foto-perfil.png')} className="h-full w-full" contentFit="cover" />
             </View>
             <Text style={styles.userName} className="text-xl uppercase text-text-primary">
               {usuario?.nome}

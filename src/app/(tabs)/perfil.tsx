@@ -1,6 +1,7 @@
 import { ScreenContainer } from '@/components/ScreenContainer';
 import { GradientFill } from '@/components/GradientFill';
 import { VehicleCard } from '@/components/VehicleCard';
+import { APP_NAME } from '@/constants/app';
 import { colors } from '@/constants/theme';
 import { useMockMode } from '@/providers/MockModeProvider';
 import { useVeiculoAtivo } from '@/providers/VeiculoAtivoProvider';
@@ -116,7 +117,7 @@ export default function PerfilScreen() {
             <MenuItem
               icon={<Info size={20} color={colors.textSecondary} />}
               label="Sobre"
-              onPress={() => Alert.alert('Rota', 'Rota v1.0 — MVP Enterprise Challenge')}
+              onPress={() => Alert.alert(APP_NAME, `${APP_NAME} v1.0 — MVP Enterprise Challenge`)}
             />
             <MenuItem
               icon={<Shield size={20} color={colors.textSecondary} />}

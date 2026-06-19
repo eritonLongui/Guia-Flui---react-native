@@ -1,4 +1,4 @@
-# Rota — Mobile App
+# Guia Flui — Mobile App
 
 Aplicativo mobile para motoristas de veículos elétricos encontrarem, compararem e escolherem os melhores pontos de recarga no Brasil.
 
@@ -15,7 +15,8 @@ npm start
 
 O comando `setup` instala dependências, cria `.env` se necessário, valida o ambiente e verifica o TypeScript automaticamente.
 
-📖 **Guia completo de build (iOS, Android, APK):** [docs/SETUP.md](docs/SETUP.md)
+📖 **Guia completo de build (iOS, Android, APK):** [docs/SETUP.md](docs/SETUP.md)  
+📖 **Acessibilidade (PRD):** [docs/ACESSIBILIDADE.md](docs/ACESSIBILIDADE.md)
 
 **Alternativa via shell (macOS/Linux):**
 
@@ -160,7 +161,7 @@ Celular e computador devem estar na **mesma rede Wi-Fi**.
 
 | Tela | Descrição |
 |------|-----------|
-| Splash | Branding Rota |
+| Splash | Branding Guia Flui |
 | Home | Veículo ativo, estações próximas, recomendação, última rota |
 | Explorar | Mapa fullscreen + bottom sheet com lista |
 | Detalhes | Compatibilidade, tempo, segurança, conveniência, conectores |

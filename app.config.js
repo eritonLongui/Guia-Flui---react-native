@@ -20,5 +20,11 @@ module.exports = {
   expo: {
     ...appJson.expo,
     plugins,
+    extra: {
+      ...appJson.expo.extra,
+      eas: {
+        projectId: '296debf2-3fec-4861-90c7-ab2cd004795f',
+      },
+    },
   },
 };

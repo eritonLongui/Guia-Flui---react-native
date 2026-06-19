@@ -17,5 +17,5 @@ xcrun simctl launch booted "$BUNDLE_ID" 2>/dev/null || \
   xcrun simctl launch "$DEVICE" "$BUNDLE_ID"
 
 echo ""
-echo "App Rota aberto no simulador ($DEVICE)."
+echo "App ${APP_NAME:-Guia Flui} aberto no simulador ($DEVICE)."
 echo "Metro deve estar rodando: npm start  (127.0.0.1:8083)"

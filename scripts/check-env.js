@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Valida se o ambiente local atende aos requisitos do projeto Rota.
+ * Valida se o ambiente local atende aos requisitos do projeto Guia Flui.
  * Uso: npm run setup:check
  */
 
@@ -81,7 +81,7 @@ function fail(message) {
   log('✗', message, colors.red);
 }
 
-console.log(`\n${colors.cyan}Rota — verificação de ambiente${colors.reset}\n`);
+console.log(`\n${colors.cyan}Guia Flui — verificação de ambiente${colors.reset}\n`);
 
 const nodeVersion = parseVersion(process.version);
 if (compareVersions(nodeVersion, MIN_NODE) >= 0) {

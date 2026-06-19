@@ -1,4 +1,4 @@
-# Setup e build — Rota
+# Setup e build — Guia Flui
 
 Guia completo para configurar o ambiente e testar o app no **iOS Simulator**, **Android Emulator** ou via **APK**.
 

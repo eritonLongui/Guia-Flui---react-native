@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Setup automático do projeto Rota.
+ * Setup automático do projeto Guia Flui.
  * Instala dependências, valida ambiente e verifica TypeScript.
  *
  * Uso: npm run setup
@@ -159,7 +159,7 @@ function printNextSteps() {
 function main() {
   console.log(`${colors.cyan}
   ╔══════════════════════════════════╗
-  ║     Rota — Setup Automático      ║
+  ║   Guia Flui — Setup Automático   ║
   ╚══════════════════════════════════╝${colors.reset}`);
 
   title('1/4 — Node.js');

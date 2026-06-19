@@ -8,6 +8,7 @@ import { FeatureChip } from '@/components/FeatureChip';
 import { Rating } from '@/components/Rating';
 import { ReviewsCarousel } from '@/components/ReviewsCarousel';
 import { SafetyBadge } from '@/components/SafetyBadge';
+import { APP_NAME } from '@/constants/app';
 import { colors, layout } from '@/constants/theme';
 import { HIT_SLOP_PADRAO } from '@/lib/a11y';
 import { obterExplicacaoCompatibilidade } from '@/lib/compatibilidade';
@@ -297,7 +298,7 @@ export default function EletropostoDetalheScreen() {
           ]}>
           <Button
             label="Seguir Rota"
-            onPress={() => Alert.alert('Rota', 'Navegação iniciada (simulada).')}
+            onPress={() => Alert.alert(APP_NAME, 'Navegação iniciada (simulada).')}
             className="h-[56px]"
           />
         </View>

@@ -1,3 +1,4 @@
+import { APP_NAME } from '@/constants/app';
 import { Title } from '@/components/Title';
 import { GradientBackground, GradientFill } from '@/components/GradientFill';
 import { colors } from '@/constants/theme';
@@ -22,7 +23,7 @@ export default function SplashScreen() {
           <Zap size={40} color={colors.textPrimary} />
         </View>
       </GradientFill>
-      <Title size="hero">Rota</Title>
+      <Title size="hero">{APP_NAME}</Title>
       <Text className="mt-2 font-poppins text-sm text-text-muted">
         Recarga inteligente para seu EV
       </Text>

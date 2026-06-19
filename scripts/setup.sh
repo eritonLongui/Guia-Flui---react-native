@@ -6,7 +6,7 @@ cd "$ROOT"
 
 echo ""
 echo "╔══════════════════════════════════╗"
-echo "║   Rota — Setup Automático (sh)   ║"
+echo "║   Guia Flui — Setup Automático   ║"
 echo "╚══════════════════════════════════╝"
 echo ""
 

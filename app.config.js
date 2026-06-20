@@ -19,11 +19,17 @@ const plugins = appJson.expo.plugins.map((plugin) => {
 module.exports = {
   expo: {
     ...appJson.expo,
+
+    slug: 'guia-flui',
+
+    owner: 'eritonlonguis-organization',
+
     plugins,
+
     extra: {
       ...appJson.expo.extra,
       eas: {
-        projectId: '296debf2-3fec-4861-90c7-ab2cd004795f',
+        projectId: 'c0350f61-bb5c-4340-8752-45b30ce97fe2',
       },
     },
   },

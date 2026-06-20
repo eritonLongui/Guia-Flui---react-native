@@ -23,8 +23,6 @@ export function Input({
     <View style={styles.container} className={cn(className)}>
       {icon && (
         <Search
-          accessible={false}
-          importantForAccessibility="no"
           size={20}
           color={colors.textMuted}
           style={styles.icon}

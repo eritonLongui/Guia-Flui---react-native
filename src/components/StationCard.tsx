@@ -29,13 +29,13 @@ export function StationCard({
       style={[styles.card, carousel && styles.carouselCard]}>
       <View
         style={[styles.inner, carousel && styles.innerFixed]}
-        accessible={false}
+        aria-hidden={true}
         importantForAccessibility="no">
         <View style={styles.header}>
           <CompatibilityBadge nivel={eletroposto.nivelCompatibilidade} />
           {eletroposto.distanciaKm !== undefined && (
             <View style={styles.row}>
-              <MapPin accessible={false} size={17} color={colors.textPrimary} />
+              <MapPin aria-hidden={true} size={17} color={colors.textPrimary} />
               <Text style={styles.iconTextGap} className="font-poppins text-base text-text-primary">
                 {formatarDistancia(eletroposto.distanciaKm)}
               </Text>
@@ -53,13 +53,13 @@ export function StationCard({
             </Text>
             <View style={styles.stats}>
               <View style={styles.row}>
-                <Clock accessible={false} size={17} color={colors.textPrimary} />
+                <Clock aria-hidden={true} size={17} color={colors.textPrimary} />
                 <Text style={styles.iconTextGap} className="font-poppins text-base text-text-secondary">
                   Fila {eletroposto.tempoFilaMinutos}min
                 </Text>
               </View>
               <View style={[styles.row, styles.groupGap]}>
-                <Zap accessible={false} size={17} color={colors.textPrimary} />
+                <Zap aria-hidden={true} size={17} color={colors.textPrimary} />
                 <Text style={styles.iconTextGap} className="font-poppins text-base text-text-secondary">
                   {eletroposto.tempoCargaMinutos}min
                 </Text>

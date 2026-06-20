@@ -35,11 +35,11 @@ function MenuItem({ icon, label, onPress, trailing }: MenuItemProps) {
       accessibilityRole="button"
       accessibilityLabel={label}
       accessibilityState={{ disabled: !onPress && !trailing }}>
-      <View className="flex-row items-center gap-3" accessible={false} importantForAccessibility="no">
+      <View className="flex-row items-center gap-3" aria-hidden={true}>
         {icon}
         <Text className="font-poppins text-base text-text-primary">{label}</Text>
       </View>
-      {trailing ?? (onPress ? <ChevronRight accessible={false} size={20} color={colors.textMuted} /> : null)}
+      {trailing ?? (onPress ? <ChevronRight aria-hidden={true} size={20} color={colors.textMuted} /> : null)}
     </Pressable>
   );
 }
@@ -73,7 +73,7 @@ export default function PerfilScreen() {
           className="min-h-[50%] flex-1 items-center justify-center py-24"
           accessibilityRole="progressbar"
           accessibilityLabel="Carregando">
-          <ActivityIndicator accessible={false} color={colors.textPrimary} />
+          <ActivityIndicator aria-hidden={true} color={colors.textPrimary} />
         </View>
       ) : (
         <>

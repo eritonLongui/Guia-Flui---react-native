@@ -74,7 +74,7 @@ export default function ExplorarScreen() {
           accessibilityHint="Abre opções de filtro dos eletropostos"
           hitSlop={HIT_SLOP_PADRAO}
           onPress={() => Alert.alert('Filtros', 'Filtros disponíveis em breve.')}>
-          <SlidersHorizontal accessible={false} size={20} color={colors.textPrimary} />
+          <SlidersHorizontal aria-hidden={true} size={20} color={colors.textPrimary} />
         </Pressable>
         </View>
         <View className="flex-1 items-center justify-center">
@@ -143,7 +143,7 @@ export default function ExplorarScreen() {
           accessibilityHint="Abre opções de filtro dos eletropostos"
           hitSlop={HIT_SLOP_PADRAO}
           onPress={() => Alert.alert('Filtros', 'Filtros disponíveis em breve.')}>
-          <SlidersHorizontal accessible={false} size={20} color={colors.textPrimary} />
+          <SlidersHorizontal aria-hidden={true} size={20} color={colors.textPrimary} />
         </Pressable>
       </View>
 

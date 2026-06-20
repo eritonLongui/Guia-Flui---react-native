@@ -25,7 +25,7 @@ export function ReviewCard({ avaliacao }: ReviewCardProps) {
         </Text>
         <View pointerEvents="none" style={styles.iconDecor}>
           <Quote
-            accessible={false}
+            aria-hidden={true}
             size={72}
             color={colors.border}
             fill={colors.border}

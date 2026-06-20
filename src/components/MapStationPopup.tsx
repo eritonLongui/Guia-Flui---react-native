@@ -25,7 +25,7 @@ export function MapStationPopup({ eletroposto, onClose, onVerMais }: MapStationP
           hitSlop={HIT_SLOP_PADRAO}
           onPress={onClose}
           style={styles.closeButton}>
-          <X accessible={false} size={18} color={colors.textMuted} />
+          <X aria-hidden={true} size={18} color={colors.textMuted} />
         </Pressable>
 
         <View style={styles.header}>

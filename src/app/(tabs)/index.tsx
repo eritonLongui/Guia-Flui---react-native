@@ -61,14 +61,14 @@ export default function HomeScreen() {
           className="min-h-[50%] flex-1 items-center justify-center py-24"
           accessibilityRole="progressbar"
           accessibilityLabel="Carregando">
-          <ActivityIndicator accessible={false} color={colors.textPrimary} />
+          <ActivityIndicator color={colors.textPrimary} />
         </View>
       ) : (
         <>
           <View className="flex-row items-center gap-4 pt-4">
-            {usuario?.avatar ? (
+            {usuario ? (
               <Image
-                source={{ uri: usuario.avatar }}
+                source={require('../../../assets/images/foto-perfil.png')}
                 style={styles.avatar}
                 resizeMode="cover"
                 accessibilityLabel={`Foto de ${usuario.nome}`}

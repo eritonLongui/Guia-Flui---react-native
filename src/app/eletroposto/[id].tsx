@@ -110,7 +110,7 @@ export default function EletropostoDetalheScreen() {
         accessibilityRole="progressbar"
         accessibilityLabel="Carregando">
         <GradientBackground />
-        <ActivityIndicator accessible={false} color={colors.textPrimary} />
+        <ActivityIndicator aria-hidden={true} color={colors.textPrimary} />
       </View>
     );
   }
@@ -147,7 +147,7 @@ export default function EletropostoDetalheScreen() {
             accessibilityHint="Retorna à tela anterior"
             hitSlop={HIT_SLOP_PADRAO}
             onPress={() => router.back()}>
-            <ArrowLeft accessible={false} size={20} color={colors.textPrimary} />
+            <ArrowLeft aria-hidden={true} size={20} color={colors.textPrimary} />
           </Pressable>
           <Pressable
             className="absolute right-4 h-10 w-10 items-center justify-center rounded-full bg-surface/90"

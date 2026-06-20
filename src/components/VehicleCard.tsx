@@ -25,20 +25,20 @@ export function VehicleCard({ veiculo }: VehicleCardProps) {
         </Text>
         <View className="mt-4 flex-row items-center justify-between">
           <View className="flex-row items-center gap-2">
-            <Battery accessible={false} size={18} color={colors.textPrimary} />
+            <Battery size={18} color={colors.textPrimary} />
             <Text className="font-poppins text-base text-text-secondary">
               {veiculo.autonomiaKm} km
             </Text>
           </View>
           <View className="flex-row items-center gap-2">
-            <Zap accessible={false} size={18} color={colors.textPrimary} />
+            <Zap size={18} color={colors.textPrimary} />
             <Text style={styles.connector} className="font-poppins text-base text-text-secondary">
               {veiculo.tiposConector[0] ?? 'N/A'}
             </Text>
           </View>
         </View>
         <View pointerEvents="none" style={styles.iconDecor}>
-          <Car accessible={false} size={108} color={colors.border} strokeWidth={1.25} />
+          <Car size={108} color={colors.border} strokeWidth={1.25} />
         </View>
       </View>
     </GradientFill>

@@ -14,12 +14,12 @@ export function Rating({ nota, quantidadeAvaliacoes }: RatingProps) {
       style={styles.row}
       accessibilityRole="text"
       accessibilityLabel={criarRotuloAvaliacao(nota, quantidadeAvaliacoes)}>
-      <Star accessible={false} size={13} color={colors.warning} fill={colors.warning} />
-      <Text accessible={false} style={styles.score} className="font-poppins-bold text-sm text-warning">
+      <Star aria-hidden={true} size={13} color={colors.warning} fill={colors.warning} />
+      <Text aria-hidden={true} style={styles.score} className="font-poppins-bold text-sm text-warning">
         {nota.toFixed(1)}
       </Text>
       {quantidadeAvaliacoes !== undefined && (
-        <Text accessible={false} style={styles.count} className="font-poppins text-sm text-text-muted">
+        <Text aria-hidden={true} style={styles.count} className="font-poppins text-sm text-text-muted">
           ({quantidadeAvaliacoes})
         </Text>
       )}

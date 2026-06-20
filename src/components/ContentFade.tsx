@@ -38,7 +38,7 @@ export function ContentFade({
 
   return (
     <View
-      accessible={false}
+      aria-hidden={true}
       importantForAccessibility="no"
       pointerEvents="none"
       style={[styles.container, { height }, style]}>

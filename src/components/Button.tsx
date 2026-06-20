@@ -40,7 +40,7 @@ export function Button({
       accessibilityState={{ disabled: !!disabled }}
       {...props}>
       <Text
-        accessible={false}
+        aria-hidden={true}
         className={cn('font-poppins-bold text-base uppercase', styles.text)}>
         {label}
       </Text>

@@ -34,7 +34,7 @@ export function CompatibilityBadge({ nivel, className }: CompatibilityBadgeProps
       accessibilityLabel={criarRotuloCompatibilidade(nivel)}
       className={cn('px-3 py-1', containerStyles[nivel], className)}>
       <Text
-        accessible={false}
+        aria-hidden={true}
         className={cn(
           'font-poppins-bold text-xs uppercase tracking-badge',
           textStyles[nivel],

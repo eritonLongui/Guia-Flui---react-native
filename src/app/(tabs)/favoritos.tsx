@@ -17,7 +17,7 @@ export default function FavoritosScreen() {
           className="min-h-[50%] flex-1 items-center justify-center py-24"
           accessibilityRole="progressbar"
           accessibilityLabel="Carregando">
-          <ActivityIndicator accessible={false} color={colors.textPrimary} />
+          <ActivityIndicator aria-hidden={true} color={colors.textPrimary} />
         </View>
       ) : (
         <>

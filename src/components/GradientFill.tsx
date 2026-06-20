@@ -23,7 +23,7 @@ export function GradientFill({
 
   return (
     <LinearGradient
-      accessible={false}
+      aria-hidden={true}
       importantForAccessibility="no"
       colors={[...gradients[variant]]}
       start={{ x: 0.5, y: 0 }}

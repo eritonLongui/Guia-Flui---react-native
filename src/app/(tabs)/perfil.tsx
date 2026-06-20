@@ -1,13 +1,14 @@
-import { APP_NAME } from '@/constants/app';
-import { APP_LOGO } from '@/constants/assets';
 import { GradientFill } from '@/components/GradientFill';
 import { ScreenContainer } from '@/components/ScreenContainer';
 import { VehicleCard } from '@/components/VehicleCard';
+import { APP_NAME } from '@/constants/app';
+import { APP_LOGO } from '@/constants/assets';
 import { colors, spacing } from '@/constants/theme';
 import { useMockMode } from '@/providers/MockModeProvider';
 import { useVeiculoAtivo } from '@/providers/VeiculoAtivoProvider';
 import { usuarioRepository } from '@/repositories/mockRepositories';
 import type { Usuario } from '@/types';
+import { Image } from 'expo-image';
 import {
   ChevronRight,
   Database,
@@ -17,7 +18,6 @@ import {
 } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
-import { Image } from 'expo-image';
 
 interface MenuItemProps {
   icon: React.ReactNode;
@@ -136,6 +136,7 @@ export default function PerfilScreen() {
     </ScreenContainer>
   );
 }
+
 
 const styles = StyleSheet.create({
   userName: {

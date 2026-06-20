@@ -1,8 +1,9 @@
-import { ScreenContainer } from '@/components/ScreenContainer';
-import { GradientFill } from '@/components/GradientFill';
-import { VehicleCard } from '@/components/VehicleCard';
 import { APP_NAME } from '@/constants/app';
-import { colors } from '@/constants/theme';
+import { APP_LOGO } from '@/constants/assets';
+import { GradientFill } from '@/components/GradientFill';
+import { ScreenContainer } from '@/components/ScreenContainer';
+import { VehicleCard } from '@/components/VehicleCard';
+import { colors, spacing } from '@/constants/theme';
 import { useMockMode } from '@/providers/MockModeProvider';
 import { useVeiculoAtivo } from '@/providers/VeiculoAtivoProvider';
 import { usuarioRepository } from '@/repositories/mockRepositories';
@@ -13,7 +14,6 @@ import {
   Info,
   Settings,
   Shield,
-  User,
 } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
@@ -126,6 +126,11 @@ export default function PerfilScreen() {
             />
             </View>
           </GradientFill>
+
+          <View style={styles.brandFooter} accessible accessibilityRole="image" accessibilityLabel={`Logotipo ${APP_NAME}`}>
+            <Image source={APP_LOGO} style={styles.brandLogo} contentFit="contain" />
+            <Text className="mt-3 font-poppins text-sm text-text-muted">{APP_NAME} · v1.0.0</Text>
+          </View>
         </>
       )}
     </ScreenContainer>
@@ -136,5 +141,14 @@ const styles = StyleSheet.create({
   userName: {
     fontFamily: 'LexendGiga_600SemiBold',
     letterSpacing: 2,
+  },
+  brandFooter: {
+    alignItems: 'center',
+    marginTop: spacing.xxl,
+    paddingBottom: spacing.lg,
+  },
+  brandLogo: {
+    width: 160,
+    height: 48,
   },
 });

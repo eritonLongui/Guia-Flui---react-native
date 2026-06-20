@@ -15,6 +15,7 @@ npm start
 
 O comando `setup` instala dependências, cria `.env` se necessário, valida o ambiente e verifica o TypeScript automaticamente.
 
+📖 **Ícones e logotipo:** [docs/BRANDING.md](docs/BRANDING.md)  
 📖 **Guia completo de build (iOS, Android, APK):** [docs/SETUP.md](docs/SETUP.md)  
 📖 **Acessibilidade (PRD):** [docs/ACESSIBILIDADE.md](docs/ACESSIBILIDADE.md)
 

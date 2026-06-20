@@ -10,7 +10,7 @@ Aplicativo mobile para motoristas de veículos elétricos **encontrarem, compara
 
 ```bash
 git clone git@github.com:eritonLongui/Guia-Flui---react-native.git
-cd rota-facul
+cd Guia-Flui---react-native
 npm run setup
 cp .env.example .env   # preencha GOOGLE_MAPS_API_KEY
 npm run start:clear
@@ -109,14 +109,24 @@ npm run android
 
 Pastas `ios/` e `android/` são geradas localmente (`npm run prebuild`) e **não** estão no Git.
 
-### APK para testar no celular (EAS)
+---
 
-```bash
-npx eas-cli login              # uma vez (login pelo browser)
-npm run build:apk              # APK na nuvem — link de download no final
-```
+## APK para testar no celular
 
-Perfil `preview` em `eas.json` gera **APK** instalável (não AAB). Projeto Expo: `@marcomendessv/rota`.
+Baixe a versão mais recente na página de Releases:
+
+[Baixar APK mais recente](https://github.com/eritonLongui/Guia-Flui---react-native/releases/latest)
+
+### Como gerar uma nova versão
+1. Baixe o APK gerado pelo EAS.
+2. Vá em **Releases** no GitHub.
+3. Clique em **Create a new release**.
+4. Crie uma tag, por exemplo: `v1.0.0`.
+5. Adicione um título, por exemplo: `APK v1.0.0`.
+6. Anexe o arquivo `.apk`.
+7. Publique a release.
+
+> O APK é gerado via **EAS Build** e fica disponível como asset da release.
 
 ---
 
@@ -200,7 +210,7 @@ src/
 
 ```bash
 git clone git@github.com:eritonLongui/Guia-Flui---react-native.git
-cd rota-facul
+cd Guia-Flui---react-native
 npm run setup
 # desenvolver com npm run start:clear
 npm run validate    # antes de abrir PR
@@ -224,6 +234,13 @@ Mais detalhes: [docs/SETUP.md](docs/SETUP.md).
 
 ---
 
+## Download
+
+- [APK Android](https://github.com/eritonLongui/Guia-Flui---react-native/releases/latest)
+- [Código-fonte](https://github.com/eritonLongui/Guia-Flui---react-native)
+
+---
+
 ## Licença
 
-Enterprise Challenge FIAP — **Flui Soluções Sustentáveis**
+Projeto acadêmico desenvolvido para o Enterprise Challenge **FIAP** em parceria com a **Flui.**

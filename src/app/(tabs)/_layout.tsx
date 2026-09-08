@@ -1,10 +1,19 @@
 import { FloatingTabBar } from '@/components/FloatingTabBar';
 import { GradientBackground } from '@/components/GradientFill';
-import { Tabs } from 'expo-router';
+import { useAuth } from '@/providers/AuthProvider';
+import { useMockMode } from '@/providers/MockModeProvider';
+import { Redirect, Tabs } from 'expo-router';
 import { Heart, Home, Map, User } from 'lucide-react-native';
 import { View } from 'react-native';
 
 export default function TabsLayout() {
+  const { session, carregando } = useAuth();
+  const { isMockMode, carregando: carregandoMock } = useMockMode();
+
+  if (!carregando && !carregandoMock && !session && !isMockMode) {
+    return <Redirect href="/(auth)/login" />;
+  }
+
   return (
     <View style={{ flex: 1 }}>
       <GradientBackground />

@@ -3,22 +3,25 @@ import {
   eletropostosMock,
   favoritosMock,
   localizacaoUsuarioMock,
-  rotaMock,
   usuarioMock,
   veiculosMock,
 } from '@/data/mock';
 import type {
+  AtualizarAvaliacaoInput,
   AvaliacaoRepository,
   EletropostoRepository,
   FavoritoRepository,
-  RotaRepository,
+  NovaAvaliacaoInput,
   UsuarioRepository,
   VeiculoRepository,
 } from '@/repositories/interfaces';
-import type { Avaliacao, Eletroposto, Favorito, Localizacao, Rota, Usuario, Veiculo } from '@/types';
+import type { Avaliacao, Eletroposto, Favorito, Localizacao, Usuario, Veiculo } from '@/types';
 import { calcularDistanciaKm } from '@/lib/formatadores';
 
 let favoritosStore = [...favoritosMock];
+let avaliacoesStore = [...avaliacoesMock];
+let veiculosStore = veiculosMock.map((v) => ({ ...v }));
+let usuarioStore: Usuario = { ...usuarioMock };
 
 function comDistanciaDoUsuario(eletropostos: Eletroposto[]): Eletroposto[] {
   const { latitude, longitude } = localizacaoUsuarioMock;
@@ -66,31 +69,98 @@ export class MockEletropostoRepository implements EletropostoRepository {
 }
 
 export class MockUsuarioRepository implements UsuarioRepository {
-  async obterAtual(): Promise<Usuario> {
-    return usuarioMock;
+  async obterAtual(): Promise<Usuario | null> {
+    return { ...usuarioStore };
   }
 
   async obterLocalizacaoAtual(): Promise<Localizacao> {
     return localizacaoUsuarioMock;
   }
+
+  async atualizarPerfil(input: { nome: string }): Promise<Usuario> {
+    const nome = input.nome.trim();
+    if (!nome) throw new Error('Informe um nome.');
+    usuarioStore = { ...usuarioStore, nome };
+    return { ...usuarioStore };
+  }
 }
 
 export class MockVeiculoRepository implements VeiculoRepository {
   async listarPorUsuario(usuarioId: string): Promise<Veiculo[]> {
-    return veiculosMock.filter((v) => v.usuarioId === usuarioId);
+    return veiculosStore.filter((v) => v.usuarioId === usuarioId).map((v) => ({ ...v }));
   }
 
   async obterAtivo(usuarioId: string): Promise<Veiculo | null> {
-    return veiculosMock.find((v) => v.usuarioId === usuarioId && v.ativo) ?? null;
+    const ativo = veiculosStore.find((v) => v.usuarioId === usuarioId && v.ativo) ?? null;
+    return ativo ? { ...ativo } : null;
+  }
+
+  async salvar(veiculo: Veiculo): Promise<Veiculo> {
+    const salvo: Veiculo = { ...veiculo, ativo: true };
+    const index = veiculosStore.findIndex((v) => v.id === salvo.id);
+    if (index >= 0) {
+      veiculosStore = veiculosStore.map((v, i) =>
+        i === index ? salvo : { ...v, ativo: v.usuarioId === salvo.usuarioId ? false : v.ativo },
+      );
+    } else {
+      veiculosStore = [
+        ...veiculosStore.map((v) =>
+          v.usuarioId === salvo.usuarioId ? { ...v, ativo: false } : v,
+        ),
+        salvo,
+      ];
+    }
+    return { ...salvo };
   }
 }
 
 export class MockAvaliacaoRepository implements AvaliacaoRepository {
-  async listarPorEletroposto(eletropostoId: string, limite = 3): Promise<Avaliacao[]> {
-    const especificas = avaliacoesMock.filter((a) => a.eletropostoId === eletropostoId);
-    if (especificas.length > 0) return especificas.slice(0, limite);
+  async listarPorEletroposto(eletropostoId: string, limite = 20): Promise<Avaliacao[]> {
+    return avaliacoesStore
+      .filter((a) => a.eletropostoId === eletropostoId)
+      .sort((a, b) => (a.criadoEm < b.criadoEm ? 1 : -1))
+      .slice(0, limite);
+  }
 
-    return avaliacoesMock.slice(0, limite).map((a) => ({ ...a, eletropostoId }));
+  async obterDoUsuario(eletropostoId: string, usuarioId: string): Promise<Avaliacao | null> {
+    return (
+      avaliacoesStore.find((a) => a.eletropostoId === eletropostoId && a.usuarioId === usuarioId) ??
+      null
+    );
+  }
+
+  async criar(input: NovaAvaliacaoInput): Promise<Avaliacao> {
+    const existente = await this.obterDoUsuario(input.eletropostoId, input.usuarioId);
+    if (existente) {
+      return this.atualizar(existente.id, { nota: input.nota, comentario: input.comentario });
+    }
+
+    const nova: Avaliacao = {
+      id: `av-${Date.now()}`,
+      eletropostoId: input.eletropostoId,
+      usuarioId: input.usuarioId,
+      nomeUsuario: input.nomeUsuario,
+      nota: input.nota,
+      comentario: input.comentario,
+      criadoEm: new Date().toISOString(),
+    };
+    avaliacoesStore = [nova, ...avaliacoesStore];
+    return nova;
+  }
+
+  async atualizar(id: string, input: AtualizarAvaliacaoInput): Promise<Avaliacao> {
+    const atual = avaliacoesStore.find((a) => a.id === id);
+    if (!atual) {
+      throw new Error('Avaliação não encontrada');
+    }
+
+    const atualizada: Avaliacao = {
+      ...atual,
+      nota: input.nota,
+      comentario: input.comentario,
+    };
+    avaliacoesStore = avaliacoesStore.map((a) => (a.id === id ? atualizada : a));
+    return atualizada;
   }
 }
 
@@ -127,15 +197,8 @@ export class MockFavoritoRepository implements FavoritoRepository {
   }
 }
 
-export class MockRotaRepository implements RotaRepository {
-  async obterUltima(usuarioId: string): Promise<Rota | null> {
-    return rotaMock.usuarioId === usuarioId ? rotaMock : null;
-  }
-}
-
 export const eletropostoRepository = new MockEletropostoRepository();
 export const usuarioRepository = new MockUsuarioRepository();
 export const veiculoRepository = new MockVeiculoRepository();
 export const avaliacaoRepository = new MockAvaliacaoRepository();
 export const favoritoRepository = new MockFavoritoRepository();
-export const rotaRepository = new MockRotaRepository();

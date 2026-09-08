@@ -1,6 +1,7 @@
 import { cn } from '@/lib/cn';
 import { colors, layout, typography } from '@/constants/theme';
 import { Search } from 'lucide-react-native';
+import { forwardRef } from 'react';
 import { Platform, StyleSheet, TextInput, View, type TextInputProps } from 'react-native';
 
 const INPUT_HEIGHT = layout.searchHeight;
@@ -11,24 +12,22 @@ interface InputProps extends TextInputProps {
   className?: string;
 }
 
-export function Input({
-  icon = false,
-  className,
-  placeholder,
-  style,
-  accessibilityLabel,
-  ...props
-}: InputProps) {
+export const Input = forwardRef<TextInput, InputProps>(function Input(
+  { icon = false, className, placeholder, style, accessibilityLabel, ...props },
+  ref,
+) {
   return (
     <View style={styles.container} className={cn(className)}>
       {icon && (
         <Search
+          aria-hidden={true}
           size={20}
           color={colors.textMuted}
           style={styles.icon}
         />
       )}
       <TextInput
+        ref={ref}
         placeholder={placeholder}
         placeholderTextColor={colors.textMuted}
         cursorColor={colors.textPrimary}
@@ -40,7 +39,7 @@ export function Input({
       />
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {
@@ -63,17 +62,18 @@ const styles = StyleSheet.create({
     fontFamily: 'Poppins_400Regular',
     color: colors.textPrimary,
     paddingHorizontal: 0,
-    paddingVertical: 0,
     margin: 0,
+    textAlignVertical: 'center',
+    includeFontPadding: false,
     ...Platform.select({
       ios: {
-        // Não definir height/lineHeight iguais ao container — empurra o texto para baixo no iOS.
-        lineHeight: FONT_SIZE + 4,
+        // Poppins no iOS sobe no campo; paddingTop alinha o texto ao centro.
+        paddingTop: 3,
+        paddingBottom: 0,
       },
       android: {
         height: INPUT_HEIGHT,
-        textAlignVertical: 'center',
-        includeFontPadding: false,
+        paddingVertical: 0,
       },
     }),
   },

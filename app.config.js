@@ -22,14 +22,16 @@ module.exports = {
 
     slug: 'guia-flui',
 
-    owner: 'eritonlonguis-organization',
+    owner: 'marcomendessv',
 
     plugins,
 
     extra: {
       ...appJson.expo.extra,
+      googleMapsApiKey,
       eas: {
-        projectId: 'c0350f61-bb5c-4340-8752-45b30ce97fe2',
+        ...(appJson.expo.extra?.eas ?? {}),
+        projectId: '54541afd-a5e4-43ad-b58f-344f0dd06020',
       },
     },
   },

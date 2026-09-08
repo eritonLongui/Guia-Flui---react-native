@@ -1,4 +1,5 @@
 import { cn } from '@/lib/cn';
+import { colors } from '@/constants/theme';
 import { Pressable, Text, type PressableProps } from 'react-native';
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost';
@@ -9,19 +10,23 @@ interface ButtonProps extends PressableProps {
   className?: string;
 }
 
-const variantStyles: Record<ButtonVariant, { container: string; text: string }> = {
-  primary: { container: 'bg-elevated', text: 'text-text-primary' },
-  secondary: { container: 'bg-surface border border-border', text: 'text-text-primary' },
+const variantStyles: Record<
+  ButtonVariant,
+  { container: string; text: string; backgroundColor?: string }
+> = {
+  primary: { container: '', text: 'text-background', backgroundColor: colors.white },
+  secondary: { container: 'bg-elevated', text: 'text-text-primary' },
   ghost: { container: 'bg-transparent', text: 'text-text-primary' },
 };
 
 export function Button({
-  variant = 'primary',
+  variant = 'secondary',
   label,
   className,
   disabled,
   accessibilityLabel,
   accessibilityHint,
+  style,
   ...props
 }: ButtonProps) {
   const styles = variantStyles[variant];
@@ -38,7 +43,8 @@ export function Button({
       accessibilityLabel={accessibilityLabel ?? label}
       accessibilityHint={accessibilityHint}
       accessibilityState={{ disabled: !!disabled }}
-      {...props}>
+      {...props}
+      style={[styles.backgroundColor ? { backgroundColor: styles.backgroundColor } : null, style]}>
       <Text
         aria-hidden={true}
         className={cn('font-poppins-bold text-base uppercase', styles.text)}>

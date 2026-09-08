@@ -1,12 +1,14 @@
 import { Button } from '@/components/Button';
 import { CompatibilityBadge } from '@/components/CompatibilityBadge';
 import { GradientFill } from '@/components/GradientFill';
+import { OpenNowBadge } from '@/components/OpenNowBadge';
 import { colors } from '@/constants/theme';
 import { HIT_SLOP_PADRAO } from '@/lib/a11y';
 import { formatarDistancia } from '@/lib/formatadores';
 import type { Eletroposto } from '@/types';
 import { MapPin, X } from 'lucide-react-native';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 
 interface MapStationPopupProps {
   eletroposto: Eletroposto;
@@ -16,7 +18,11 @@ interface MapStationPopupProps {
 
 export function MapStationPopup({ eletroposto, onClose, onVerMais }: MapStationPopupProps) {
   return (
-    <View style={styles.container} pointerEvents="box-none">
+    <Animated.View
+      key={eletroposto.id}
+      entering={FadeInDown.duration(280).springify()}
+      style={styles.container}
+      pointerEvents="box-none">
       <GradientFill variant="card" rounded style={styles.card}>
         <Pressable
           accessibilityRole="button"
@@ -29,10 +35,13 @@ export function MapStationPopup({ eletroposto, onClose, onVerMais }: MapStationP
         </Pressable>
 
         <View style={styles.header}>
-          <CompatibilityBadge nivel={eletroposto.nivelCompatibilidade} />
+          <View style={styles.badges}>
+            <CompatibilityBadge nivel={eletroposto.nivelCompatibilidade} />
+            <OpenNowBadge aberto={eletroposto.abertoAgora} />
+          </View>
           {eletroposto.distanciaKm !== undefined && (
             <View style={styles.distancia}>
-              <MapPin size={15} color={colors.textSecondary} />
+              <MapPin aria-hidden={true} size={15} color={colors.textSecondary} />
               <Text className="ml-1 font-poppins text-sm text-text-secondary">
                 {formatarDistancia(eletroposto.distanciaKm)}
               </Text>
@@ -55,7 +64,7 @@ export function MapStationPopup({ eletroposto, onClose, onVerMais }: MapStationP
           />
         </View>
       </GradientFill>
-    </View>
+    </Animated.View>
   );
 }
 
@@ -85,9 +94,17 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
+    gap: 8,
     paddingRight: 28,
+  },
+  badges: {
+    flex: 1,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: 8,
   },
   distancia: {
     flexDirection: 'row',

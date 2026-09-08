@@ -12,9 +12,12 @@ Aplicativo mobile para motoristas de veículos elétricos **encontrarem, compara
 git clone git@github.com:eritonLongui/Guia-Flui---react-native.git
 cd Guia-Flui---react-native
 npm run setup
-cp .env.example .env   # preencha GOOGLE_MAPS_API_KEY
+npx eas-cli whoami          # conta Expo; se for Google, use um Access Token (EXPO_TOKEN)
+npm run env:pull            # Maps + Supabase do EAS (mesmo do APK)
 npm run start:clear
 ```
+
+Sem convite no projeto Expo `@marcomendessv/guia-flui`, copie `.env.example` → `.env` e peça as chaves ao time. **Não** crie outro projeto Supabase.
 
 O comando `npm run setup` executa automaticamente:
 
@@ -52,19 +55,28 @@ asdf install && asdf set nodejs 22.13.0
 
 ## Variáveis de ambiente
 
-Arquivo `.env` na raiz (não vai para o Git):
+Arquivo `.env` / `.env.local` na raiz (**não vai para o Git**). Sem elas, mapa, login e dados reais não funcionam.
 
 ```bash
 GOOGLE_MAPS_API_KEY=sua_chave_aqui
+EXPO_PUBLIC_SUPABASE_URL=https://xxxx.supabase.co
+EXPO_PUBLIC_SUPABASE_ANON_KEY=eyJ...
+EXPO_PUBLIC_REQUIRE_EMAIL_CONFIRMATION=false
 ```
 
-Necessária para o **mapa na aba Explorar** em dev build e APK. Obtenha em [Google Cloud Console](https://console.cloud.google.com/google/maps-apis/credentials) (Maps SDK for Android + iOS).
+`EXPO_PUBLIC_REQUIRE_EMAIL_CONFIRMATION` é uma **feature flag** (padrão `false`): o cadastro entra na hora. Isso só funciona se no Supabase, Authentication → Providers → Email, **Confirm email** estiver desligado. Para exigir o link de novo, ligue a flag `true` **e** o Confirm email no dashboard.
 
-Para builds EAS na nuvem:
+Quem já foi convidado no Expo (`@marcomendessv/guia-flui`) puxa as mesmas chaves do APK:
 
 ```bash
-npx eas-cli secret:create --scope project --name GOOGLE_MAPS_API_KEY --value "SUA_CHAVE"
+export EXPO_TOKEN="seu_token"   # Account settings → Access tokens (conta Google não tem senha no CLI)
+npx eas-cli whoami
+npm run env:pull
 ```
+
+Maps: [Google Cloud Console](https://console.cloud.google.com/google/maps-apis/credentials). Supabase: um **único** projeto do time.
+
+Passo a passo (EAS, SHA-1, testers): [docs/SETUP.md](docs/SETUP.md#5-distribuir-para-outras-pessoas).
 
 ---
 
@@ -95,7 +107,7 @@ npm run ios
 npm run ios:open
 ```
 
-Simulador padrão: **iPhone 16**. Confirme o Metro: `curl http://127.0.0.1:8083/status` → `packager-status:running`.
+Simulador padrão: **iPhone 17**. Confirme o Metro: `curl http://127.0.0.1:8083/status` → `packager-status:running`.
 
 ### Android Emulator (dev build)
 
@@ -113,20 +125,22 @@ Pastas `ios/` e `android/` são geradas localmente (`npm run prebuild`) e **não
 
 ## APK para testar no celular
 
-Baixe a versão mais recente na página de Releases:
+Projeto EAS: **[@marcomendessv/guia-flui](https://expo.dev/accounts/marcomendessv/projects/guia-flui)**. O APK de preview já sobe com Maps + Supabase.
 
-[Baixar APK mais recente](https://github.com/eritonLongui/Guia-Flui---react-native/releases/latest)
+**Instalar (Android):** abra o build no Expo (permite fontes desconhecidas se o sistema pedir):
 
-### Como gerar uma nova versão
-1. Baixe o APK gerado pelo EAS.
-2. Vá em **Releases** no GitHub.
-3. Clique em **Create a new release**.
-4. Crie uma tag, por exemplo: `v1.0.0`.
-5. Adicione um título, por exemplo: `APK v1.0.0`.
-6. Anexe o arquivo `.apk`.
-7. Publique a release.
+[Builds do Guia Flui](https://expo.dev/accounts/marcomendessv/projects/guia-flui/builds)
 
-> O APK é gerado via **EAS Build** e fica disponível como asset da release.
+Também nas [Releases do GitHub](https://github.com/eritonLongui/Guia-Flui---react-native/releases/latest), quando houver um `.apk` anexado.
+
+Gerar outra versão (variáveis já no ambiente preview):
+
+```bash
+export EXPO_TOKEN="seu_token"
+npm run build:apk
+```
+
+Quem só testa **não** precisa clonar o repo. iPhone não instala APK. Detalhes: [docs/SETUP.md](docs/SETUP.md#5-distribuir-para-outras-pessoas).
 
 ---
 
@@ -136,14 +150,18 @@ Baixe a versão mais recente na página de Releases:
 |---------|-----------|
 | `npm run setup` | Setup completo do zero |
 | `npm run validate` | Ambiente + TypeScript (use antes de PR) |
+| `npm run metro` | Metro na porta **8083** (reinicia se cair) |
 | `npm run start:clear` | Metro na porta **8083** (cache limpo) |
 | `npm run ios` | Dev build + simulador iOS |
 | `npm run ios:open` | Reabre app no simulador |
 | `npm run android` | Dev build + emulador Android |
 | `npm run prebuild` | Gera pastas nativas `ios/` e `android/` |
 | `npm run prebuild:clean` | Regenera nativo do zero |
-| `npm run build:apk` | APK Android via EAS Build |
+| `npm run build:apk` | APK Android via EAS Build (ambiente preview) |
+| `npm run env:pull` | Baixa variáveis do EAS para `.env.local` |
 | `npm run typecheck` | Apenas verificação de tipos |
+| `npm run admin:dev` | Dashboard admin (Next.js em `admin/`) |
+| `npm run admin:build` | Build de produção do dashboard |
 
 ---
 
@@ -151,9 +169,11 @@ Baixe a versão mais recente na página de Releases:
 
 | Documento | Conteúdo |
 |-----------|----------|
-| [docs/SETUP.md](docs/SETUP.md) | Setup detalhado, iOS, Android, EAS, troubleshooting |
+| [docs/SETUP.md](docs/SETUP.md) | Setup detalhado, iOS, Android, EAS, dashboard admin, troubleshooting |
+| [admin/README.md](admin/README.md) | Painel web (Next.js) — local e Vercel |
 | [docs/BRANDING.md](docs/BRANDING.md) | Ícones do app e logotipo (`assets/images/`) |
-| [docs/ACESSIBILIDADE.md](docs/ACESSIBILIDADE.md) | Acessibilidade (VoiceOver / TalkBack) para PRD |
+| [docs/DECISOES.md](docs/DECISOES.md) | Decisões de produto, dados, motion, identidade e acessibilidade (relatório acadêmico) |
+| [docs/ACESSIBILIDADE.md](docs/ACESSIBILIDADE.md) | Apontador para a seção de acessibilidade em DECISOES.md |
 
 ---
 
@@ -166,7 +186,8 @@ Baixe a versão mais recente na página de Releases:
 - **React Native Maps** · **@gorhom/bottom-sheet**
 - Fontes **Lexend Giga** + **Poppins**
 - **EAS Build** para distribuição Android
-- Repository Pattern (mock → Supabase futuro)
+- **Next.js** (pasta `admin/`) — dashboard web na Vercel
+- Repository Pattern (mock → Supabase)
 
 ---
 
@@ -175,9 +196,12 @@ Baixe a versão mais recente na página de Releases:
 | Tela | Descrição |
 |------|-----------|
 | Splash | Branding Guia Flui |
-| Home | Veículo ativo, carrossel de estações, recomendação, última rota |
-| Explorar | Mapa fullscreen + busca + bottom sheet com resultados |
-| Detalhe | Compatibilidade, tempo, segurança, conveniência, conectores, avaliações |
+| Welcome / Login / Cadastro | Auth com email e senha (Supabase) |
+| Home | Veículo ativo, carrossel de estações, recomendação |
+| Explorar | Mapa fullscreen + busca + sheet com resultados |
+| Detalhe | Compatibilidade, conectores, avaliações |
+| Rota | Navegação até o eletroposto |
+| Avaliar | Avaliação do posto |
 | Favoritos | Estações salvas |
 | Perfil | Usuário, veículo, configurações, modo mockado |
 
@@ -186,10 +210,20 @@ Baixe a versão mais recente na página de Releases:
 ## Arquitetura
 
 ```
-Screen → Repository → Mock Data (futuro: Supabase)
+Screen → Repository → Mock Data / Supabase
 ```
 
-Telas **nunca** importam `src/data/` diretamente.
+```
+guia-flui/
+├── src/           # app Expo / React Native
+├── admin/         # dashboard Next.js (Vercel)
+├── supabase/      # schema + RLS compartilhados
+└── ...
+```
+
+O dashboard **não** usa Expo Web. É um app Next.js separado, no mesmo Git, com o mesmo Supabase. Ver [admin/README.md](admin/README.md).
+
+Telas do app **nunca** importam `src/data/` diretamente.
 
 ```
 src/
@@ -212,6 +246,7 @@ src/
 git clone git@github.com:eritonLongui/Guia-Flui---react-native.git
 cd Guia-Flui---react-native
 npm run setup
+npx eas-cli whoami && npm run env:pull   # mesmas APIs do APK (projeto @marcomendessv/guia-flui)
 # desenvolver com npm run start:clear
 npm run validate    # antes de abrir PR
 ```
@@ -222,9 +257,11 @@ npm run validate    # antes de abrir PR
 
 | Problema | Solução |
 |----------|---------|
-| `No script URL provided` | Metro não está rodando → `npm run start:clear` |
+| `Could not connect to development server` / `No script URL provided` | Metro caiu. Deixe `npm run metro` em um Terminal à parte (reinicia sozinho). Confirme: `curl http://127.0.0.1:8083/status` |
 | Porta errada | App usa **8083**, não 8081 |
-| Mapa em branco | Preencha `GOOGLE_MAPS_API_KEY` no `.env` e refaça o build |
+| Mapa em branco | `.env` sem `GOOGLE_MAPS_API_KEY`, ou APK sem a variável/SHA-1 no EAS |
+| `Entity not authorized` no EAS | Conta sem acesso a `@marcomendessv/guia-flui` — peça convite ou use um Access Token da conta certa |
+| Cadastro pede confirmação de email | Confirm email ainda ligado no Supabase, ou flag `EXPO_PUBLIC_REQUIRE_EMAIL_CONFIRMATION=true` |
 | Erro após `git pull` | `npm run setup` |
 | Cache do Metro corrompido | `npm run start:clear` |
 | `npm ci` falha | `rm -rf node_modules && npm run setup` |
@@ -236,7 +273,8 @@ Mais detalhes: [docs/SETUP.md](docs/SETUP.md).
 
 ## Download
 
-- [APK Android](https://github.com/eritonLongui/Guia-Flui---react-native/releases/latest)
+- [APK Android (EAS)](https://expo.dev/accounts/marcomendessv/projects/guia-flui/builds)
+- [Releases no GitHub](https://github.com/eritonLongui/Guia-Flui---react-native/releases/latest)
 - [Código-fonte](https://github.com/eritonLongui/Guia-Flui---react-native)
 
 ---

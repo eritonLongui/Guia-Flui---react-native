@@ -127,6 +127,12 @@ if (fs.existsSync(envPath)) {
   } else {
     pass('.env configurado');
   }
+  if (
+    !envContent.match(/EXPO_PUBLIC_SUPABASE_URL=.+/) ||
+    !envContent.match(/EXPO_PUBLIC_SUPABASE_ANON_KEY=.+/)
+  ) {
+    warn('.env sem credenciais Supabase — login e dados reais precisam de EXPO_PUBLIC_SUPABASE_URL e EXPO_PUBLIC_SUPABASE_ANON_KEY');
+  }
 } else if (fs.existsSync(path.join(ROOT, '.env.example'))) {
   warn('.env ausente — rode npm run setup ou cp .env.example .env');
 }

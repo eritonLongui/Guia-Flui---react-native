@@ -20,6 +20,8 @@ expo-env.d.ts
 
 # Metro
 .metro-health-check*
+.metro.log
+.metro.pid
 
 # debug
 npm-debug.*
@@ -54,4 +56,8 @@ example
 *.apk
 *.aab
 *.ipa
+
+# Admin dashboard (Next.js)
+admin/.next/
+admin/out/
 

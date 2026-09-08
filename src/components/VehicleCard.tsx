@@ -1,6 +1,6 @@
 import { GradientFill } from '@/components/GradientFill';
+import { colors, layout } from '@/constants/theme';
 import { criarRotuloVeiculo } from '@/lib/a11y';
-import { colors } from '@/constants/theme';
 import type { Veiculo } from '@/types';
 import { Battery, Car, Zap } from 'lucide-react-native';
 import { StyleSheet, Text, View } from 'react-native';
@@ -10,35 +10,35 @@ interface VehicleCardProps {
 }
 
 export function VehicleCard({ veiculo }: VehicleCardProps) {
+  const conector = veiculo.tiposConector[0] ?? 'N/A';
+
   return (
-    <GradientFill variant="card" rounded style={styles.card}>
+    <GradientFill variant="card" rounded={layout.cardRadius} style={styles.card}>
       <View
-        className="p-5"
+        style={styles.inner}
         accessible
         accessibilityRole="text"
         accessibilityLabel={criarRotuloVeiculo(veiculo.marca, veiculo.modelo, veiculo.autonomiaKm)}>
-        <Text className="font-poppins text-sm uppercase tracking-badge text-text-primary">
-          Meu carro
-        </Text>
-        <Text className="mt-2 font-lexend-giga text-2xl text-text-primary">
-          {veiculo.marca} {veiculo.modelo}
-        </Text>
-        <View className="mt-4 flex-row items-center justify-between">
-          <View className="flex-row items-center gap-2">
-            <Battery size={18} color={colors.textPrimary} />
-            <Text className="font-poppins text-base text-text-secondary">
-              {veiculo.autonomiaKm} km
+        <View style={styles.copy}>
+          <Text style={styles.kicker}>Meu carro</Text>
+          <View style={styles.nameRow}>
+            <View style={styles.iconWrap}>
+              <Car aria-hidden={true} size={22} color={colors.accent} strokeWidth={2.2} />
+            </View>
+            <Text style={styles.name} numberOfLines={1}>
+              {veiculo.marca} {veiculo.modelo}
             </Text>
           </View>
-          <View className="flex-row items-center gap-2">
-            <Zap size={18} color={colors.textPrimary} />
-            <Text style={styles.connector} className="font-poppins text-base text-text-secondary">
-              {veiculo.tiposConector[0] ?? 'N/A'}
-            </Text>
+          <View style={styles.stats}>
+            <View style={styles.stat}>
+              <Battery aria-hidden={true} size={18} color={colors.textPrimary} strokeWidth={2.2} />
+              <Text style={styles.statText}>{veiculo.autonomiaKm} km</Text>
+            </View>
+            <View style={styles.stat}>
+              <Zap aria-hidden={true} size={18} color={colors.textPrimary} strokeWidth={2.2} />
+              <Text style={styles.statText}>{conector}</Text>
+            </View>
           </View>
-        </View>
-        <View pointerEvents="none" style={styles.iconDecor}>
-          <Car size={108} color={colors.border} strokeWidth={1.25} />
         </View>
       </View>
     </GradientFill>
@@ -48,16 +48,57 @@ export function VehicleCard({ veiculo }: VehicleCardProps) {
 const styles = StyleSheet.create({
   card: {
     overflow: 'hidden',
-    position: 'relative',
   },
-  iconDecor: {
-    position: 'absolute',
-    top: -20,
-    right: -14,
-    opacity: 0.45,
+  inner: {
+    paddingHorizontal: 20,
+    paddingVertical: 18,
   },
-  connector: {
-    letterSpacing: 1,
+  copy: {
+    gap: 8,
+  },
+  kicker: {
+    fontFamily: 'Poppins_400Regular',
+    fontSize: 13,
+    lineHeight: 18,
+    color: colors.textMuted,
     textTransform: 'uppercase',
+    letterSpacing: 1.2,
+  },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  iconWrap: {
+    width: 22,
+    height: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  name: {
+    flex: 1,
+    minWidth: 0,
+    fontFamily: 'LexendGiga_600SemiBold',
+    fontSize: 22,
+    lineHeight: 28,
+    includeFontPadding: false,
+    color: colors.textPrimary,
+  },
+  stats: {
+    marginTop: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 20,
+  },
+  stat: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  statText: {
+    fontFamily: 'Poppins_400Regular',
+    fontSize: 15,
+    lineHeight: 22,
+    color: colors.textSecondary,
   },
 });

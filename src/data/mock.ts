@@ -1,4 +1,4 @@
-import type { Avaliacao, Eletroposto, Favorito, Localizacao, Rota, Usuario, Veiculo } from '@/types';
+import type { Avaliacao, Eletroposto, Favorito, Localizacao, Usuario, Veiculo } from '@/types';
 
 export const usuarioMock: Usuario = {
   id: 'user-1',
@@ -9,7 +9,7 @@ export const usuarioMock: Usuario = {
   criadoEm: '2025-03-15T10:00:00Z',
 };
 
-/** Localização mockada do usuário — Pinheiros, SP (mesma região da última rota). */
+/** Localização mockada do usuário — Pinheiros, SP. */
 export const localizacaoUsuarioMock: Localizacao = {
   endereco: 'Rua dos Pinheiros, 498',
   cidade: 'São Paulo',
@@ -57,6 +57,7 @@ export const eletropostosMock: Eletroposto[] = [
     temEstacionamento: true,
     abertoAgora: true,
     horarioFuncionamento: '24 horas',
+    horarioMenorMovimento: '14:00–16:00',
     carregadoresDisponiveis: 3,
     carregadoresTotal: 4,
     conectores: [
@@ -89,6 +90,7 @@ export const eletropostosMock: Eletroposto[] = [
     temEstacionamento: false,
     abertoAgora: true,
     horarioFuncionamento: '06:00 - 23:00',
+    horarioMenorMovimento: '09:00–11:00',
     carregadoresDisponiveis: 2,
     carregadoresTotal: 3,
     conectores: [{ tipo: 'CCS2', potenciaKw: 120, quantidade: 3 }],
@@ -118,6 +120,7 @@ export const eletropostosMock: Eletroposto[] = [
     temEstacionamento: true,
     abertoAgora: true,
     horarioFuncionamento: '24 horas',
+    horarioMenorMovimento: '15:00–17:00',
     carregadoresDisponiveis: 1,
     carregadoresTotal: 2,
     conectores: [
@@ -150,6 +153,7 @@ export const eletropostosMock: Eletroposto[] = [
     temEstacionamento: true,
     abertoAgora: true,
     horarioFuncionamento: '24 horas',
+    horarioMenorMovimento: '14:00–16:00',
     carregadoresDisponiveis: 4,
     carregadoresTotal: 5,
     conectores: [
@@ -182,6 +186,7 @@ export const eletropostosMock: Eletroposto[] = [
     temEstacionamento: true,
     abertoAgora: false,
     horarioFuncionamento: '07:00 - 22:00',
+    horarioMenorMovimento: '09:00–11:00',
     carregadoresDisponiveis: 0,
     carregadoresTotal: 2,
     conectores: [{ tipo: 'Tipo 2', potenciaKw: 22, quantidade: 2 }],
@@ -211,6 +216,7 @@ export const eletropostosMock: Eletroposto[] = [
     temEstacionamento: true,
     abertoAgora: true,
     horarioFuncionamento: '08:00 - 20:00',
+    horarioMenorMovimento: '10:00–12:00',
     carregadoresDisponiveis: 1,
     carregadoresTotal: 2,
     conectores: [{ tipo: 'CHAdeMO', potenciaKw: 50, quantidade: 2 }],
@@ -240,6 +246,7 @@ export const eletropostosMock: Eletroposto[] = [
     temEstacionamento: false,
     abertoAgora: true,
     horarioFuncionamento: '06:00 - 22:00',
+    horarioMenorMovimento: '09:00–11:00',
     carregadoresDisponiveis: 2,
     carregadoresTotal: 3,
     conectores: [{ tipo: 'CCS2', potenciaKw: 100, quantidade: 3 }],
@@ -269,6 +276,7 @@ export const eletropostosMock: Eletroposto[] = [
     temEstacionamento: true,
     abertoAgora: true,
     horarioFuncionamento: '10:00 - 22:00',
+    horarioMenorMovimento: '14:00–16:00',
     carregadoresDisponiveis: 3,
     carregadoresTotal: 4,
     conectores: [
@@ -301,6 +309,7 @@ export const eletropostosMock: Eletroposto[] = [
     temEstacionamento: true,
     abertoAgora: true,
     horarioFuncionamento: '07:00 - 21:00',
+    horarioMenorMovimento: '09:00–11:00',
     carregadoresDisponiveis: 1,
     carregadoresTotal: 2,
     conectores: [{ tipo: 'CCS2', potenciaKw: 80, quantidade: 2 }],
@@ -330,6 +339,7 @@ export const eletropostosMock: Eletroposto[] = [
     temEstacionamento: true,
     abertoAgora: true,
     horarioFuncionamento: '07:00 - 19:00',
+    horarioMenorMovimento: '10:00–12:00',
     carregadoresDisponiveis: 2,
     carregadoresTotal: 3,
     conectores: [{ tipo: 'CHAdeMO', potenciaKw: 50, quantidade: 3 }],
@@ -359,6 +369,7 @@ export const eletropostosMock: Eletroposto[] = [
     temEstacionamento: true,
     abertoAgora: true,
     horarioFuncionamento: '24 horas',
+    horarioMenorMovimento: '14:00–16:00',
     carregadoresDisponiveis: 5,
     carregadoresTotal: 6,
     conectores: [
@@ -391,6 +402,7 @@ export const eletropostosMock: Eletroposto[] = [
     temEstacionamento: false,
     abertoAgora: false,
     horarioFuncionamento: '08:00 - 18:00',
+    horarioMenorMovimento: '09:00–11:00',
     carregadoresDisponiveis: 0,
     carregadoresTotal: 1,
     conectores: [{ tipo: 'Tipo 2', potenciaKw: 7, quantidade: 1 }],
@@ -461,13 +473,3 @@ export const favoritosMock: Favorito[] = [
   { id: 'fav-2', usuarioId: 'user-1', eletropostoId: 'ep-4' },
   { id: 'fav-3', usuarioId: 'user-1', eletropostoId: 'ep-8' },
 ];
-
-export const rotaMock: Rota = {
-  id: 'rota-1',
-  usuarioId: 'user-1',
-  origem: 'Pinheiros, SP',
-  destino: 'Campinas, SP',
-  tempoEstimado: '1h 45min',
-  distanciaEstimada: '92 km',
-  eletropostoIds: ['ep-1', 'ep-11'],
-};

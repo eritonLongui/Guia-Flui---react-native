@@ -1,1 +1,1 @@
-export { MapaExplorar } from './MapaExplorar.web';
+export { MapaExplorar, type MapaExplorarHandle } from './MapaExplorar.web';

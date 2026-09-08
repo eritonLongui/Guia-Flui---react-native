@@ -21,7 +21,7 @@ export function Title({ size = 'md', className, style, children, ...props }: Tit
   return (
     <Text
       className={cn(
-        'font-lexend-giga uppercase tracking-title text-text-primary',
+        'font-poppins-semibold uppercase tracking-title text-text-primary',
         sizeClasses[size],
         className,
       )}
@@ -34,7 +34,7 @@ export function Title({ size = 'md', className, style, children, ...props }: Tit
 }
 
 const styles = StyleSheet.create({
-  /** Evita corte da última letra com letter-spacing no Lexend Giga. */
+  /** Evita corte da última letra com letter-spacing. */
   trackingCompensation: {
     flexShrink: 0,
     paddingRight: 4,

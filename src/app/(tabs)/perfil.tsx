@@ -1,147 +1,226 @@
+import { Avatar } from '@/components/Avatar';
 import { GradientFill } from '@/components/GradientFill';
-import { ScreenContainer } from '@/components/ScreenContainer';
+import { ScreenTopFade } from '@/components/ScreenTopFade';
+import { SettingsRow } from '@/components/SettingsRow';
 import { VehicleCard } from '@/components/VehicleCard';
 import { APP_NAME } from '@/constants/app';
 import { APP_LOGO } from '@/constants/assets';
-import { colors, spacing } from '@/constants/theme';
+import { colors, layout, spacing } from '@/constants/theme';
+import { useAuth } from '@/providers/AuthProvider';
 import { useMockMode } from '@/providers/MockModeProvider';
 import { useVeiculoAtivo } from '@/providers/VeiculoAtivoProvider';
-import { usuarioRepository } from '@/repositories/mockRepositories';
+import { usuarioRepository } from '@/repositories';
 import type { Usuario } from '@/types';
 import { Image } from 'expo-image';
-import {
-  ChevronRight,
-  Database,
-  Info,
-  Settings,
-  Shield,
-} from 'lucide-react-native';
-import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
-
-interface MenuItemProps {
-  icon: React.ReactNode;
-  label: string;
-  onPress?: () => void;
-  trailing?: React.ReactNode;
-}
-
-function MenuItem({ icon, label, onPress, trailing }: MenuItemProps) {
-  return (
-    <Pressable
-      className="flex-row items-center justify-between border-b border-border py-4"
-      onPress={onPress}
-      disabled={!onPress && !trailing}
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      accessibilityState={{ disabled: !onPress && !trailing }}>
-      <View className="flex-row items-center gap-3" aria-hidden={true}>
-        {icon}
-        <Text className="font-poppins text-base text-text-primary">{label}</Text>
-      </View>
-      {trailing ?? (onPress ? <ChevronRight aria-hidden={true} size={20} color={colors.textMuted} /> : null)}
-    </Pressable>
-  );
-}
+import { router, useFocusEffect } from 'expo-router';
+import { Info, LogOut, Settings, Shield, UserRound } from 'lucide-react-native';
+import { useCallback, useState } from 'react';
+import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import Animated, { FadeIn } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function PerfilScreen() {
+  const insets = useSafeAreaInsets();
   const { veiculo, carregando: carregandoVeiculo } = useVeiculoAtivo();
-  const { isMockMode, toggleMockMode, carregando: carregandoMock } = useMockMode();
+  const { usuario: usuarioAuth, signOut, session } = useAuth();
+  const { isMockMode } = useMockMode();
   const [usuario, setUsuario] = useState<Usuario | null>(null);
   const [carregando, setCarregando] = useState(true);
+  const [saindo, setSaindo] = useState(false);
 
-  useEffect(() => {
-    let mounted = true;
+  useFocusEffect(
+    useCallback(() => {
+      let mounted = true;
+      usuarioRepository.obterAtual().then((u) => {
+        if (!mounted) return;
+        setUsuario(u ?? usuarioAuth);
+        setCarregando(false);
+      });
+      return () => {
+        mounted = false;
+      };
+    }, [usuarioAuth, isMockMode]),
+  );
 
-    usuarioRepository.obterAtual().then((u) => {
-      if (!mounted) return;
-      setUsuario(u);
-      setCarregando(false);
-    });
+  const carregandoTela = carregando || carregandoVeiculo;
 
-    return () => {
-      mounted = false;
-    };
-  }, []);
+  const sair = () => {
+    Alert.alert('Sair', 'Deseja encerrar a sessão?', [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Sair',
+        style: 'destructive',
+        onPress: async () => {
+          setSaindo(true);
+          try {
+            await signOut();
+            router.replace('/(auth)/login');
+          } catch (error) {
+            Alert.alert(
+              APP_NAME,
+              error instanceof Error ? error.message : 'Não foi possível sair.',
+            );
+            setSaindo(false);
+          }
+        },
+      },
+    ]);
+  };
 
-  const carregandoTela = carregando || carregandoVeiculo || carregandoMock;
+  if (carregandoTela) {
+    return (
+      <View
+        style={styles.screen}
+        accessibilityRole="progressbar"
+        accessibilityLabel="Carregando">
+        <ActivityIndicator aria-hidden={true} color={colors.textPrimary} />
+      </View>
+    );
+  }
 
   return (
-    <ScreenContainer scroll>
-      {carregandoTela ? (
-        <View
-          className="min-h-[50%] flex-1 items-center justify-center py-24"
-          accessibilityRole="progressbar"
-          accessibilityLabel="Carregando">
-          <ActivityIndicator aria-hidden={true} color={colors.textPrimary} />
-        </View>
-      ) : (
-        <>
-          <View className="items-center pt-6">
-            <View className="mb-4 h-20 w-20 items-center justify-center rounded-full bg-elevated overflow-hidden">
-              <Image source={require('../../../assets/images/foto-perfil.png')} className="h-full w-full" contentFit="cover" />
-            </View>
-            <Text style={styles.userName} className="text-xl uppercase text-text-primary">
+    <View style={styles.screen}>
+      <ScrollView
+        style={styles.scroll}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: insets.bottom + layout.floatingTabBar.scrollPadding },
+        ]}>
+        <Animated.View entering={FadeIn.duration(400)} style={styles.scrollInner}>
+          <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
+            <Avatar nome={usuario?.nome} size={72} />
+            <Text style={styles.userName} numberOfLines={1}>
               {usuario?.nome}
             </Text>
-            <Text className="mt-1 font-poppins text-sm text-text-muted">{usuario?.email}</Text>
+            {usuario?.email ? (
+              <Text style={styles.email} numberOfLines={1}>
+                {usuario.email}
+              </Text>
+            ) : null}
           </View>
 
-          {veiculo && (
-            <View className="mt-6">
-              <VehicleCard veiculo={veiculo} />
-            </View>
-          )}
+          {veiculo ? (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Editar carro"
+                accessibilityHint="Abre os dados do veículo"
+                onPress={() => router.push('/perfil/veiculo')}>
+                <VehicleCard veiculo={veiculo} />
+              </Pressable>
+            ) : (
+              <GradientFill variant="card" rounded={layout.cardRadius}>
+                <Pressable
+                  style={styles.emptyCar}
+                  accessibilityRole="button"
+                  accessibilityLabel="Cadastrar carro"
+                  onPress={() => router.push('/perfil/veiculo')}>
+                  <Text style={styles.emptyCarText}>Cadastrar meu carro</Text>
+                </Pressable>
+              </GradientFill>
+            )}
 
-          <GradientFill variant="card" rounded style={{ marginTop: 32 }}>
-            <View className="px-4">
-            <MenuItem
-              icon={<Settings size={20} color={colors.textSecondary} />}
-              label="Configurações"
-              onPress={() => Alert.alert('Configurações', 'Em breve.')}
-            />
-            <MenuItem
-              icon={<Database size={20} color={colors.textSecondary} />}
-              label="Modo Mockado"
-              trailing={
-                <Switch
-                  accessibilityLabel="Modo mockado"
-                  accessibilityHint="Alterna entre dados simulados e dados reais"
-                  value={isMockMode}
-                  onValueChange={toggleMockMode}
-                  trackColor={{ false: colors.border, true: colors.accent }}
-                  thumbColor={colors.textPrimary}
+            <GradientFill variant="card" rounded={layout.cardRadius} style={styles.menuCard}>
+              <View style={styles.menuInner}>
+                <SettingsRow
+                  icon={<UserRound size={20} color={colors.textSecondary} />}
+                  label="Editar perfil"
+                  onPress={() => router.push('/perfil/editar')}
                 />
-              }
-            />
-            <MenuItem
-              icon={<Info size={20} color={colors.textSecondary} />}
-              label="Sobre"
-              onPress={() => Alert.alert(APP_NAME, `${APP_NAME} v1.0 — MVP Enterprise Challenge`)}
-            />
-            <MenuItem
-              icon={<Shield size={20} color={colors.textSecondary} />}
-              label="Privacidade"
-              onPress={() => Alert.alert('Privacidade', 'Política de privacidade em breve.')}
-            />
-            </View>
-          </GradientFill>
+                <SettingsRow
+                  icon={<Settings size={20} color={colors.textSecondary} />}
+                  label="Configurações"
+                  onPress={() => router.push('/perfil/configuracoes')}
+                />
+                <SettingsRow
+                  icon={<Info size={20} color={colors.textSecondary} />}
+                  label="Sobre"
+                  onPress={() => router.push('/perfil/sobre')}
+                />
+                <SettingsRow
+                  icon={<Shield size={20} color={colors.textSecondary} />}
+                  label="Privacidade"
+                  last={!session}
+                  onPress={() => router.push('/perfil/privacidade')}
+                />
+                {session ? (
+                  <SettingsRow
+                    last
+                    destructive
+                    icon={<LogOut size={20} color={colors.danger} />}
+                    label={saindo ? 'Saindo...' : 'Sair'}
+                    onPress={saindo ? undefined : sair}
+                  />
+                ) : null}
+              </View>
+            </GradientFill>
 
-          <View style={styles.brandFooter} accessible accessibilityRole="image" accessibilityLabel={`Logotipo ${APP_NAME}`}>
-            <Image source={APP_LOGO} style={styles.brandLogo} contentFit="contain" />
-            <Text className="mt-3 font-poppins text-sm text-text-muted">{APP_NAME} · v1.0.0</Text>
-          </View>
-        </>
-      )}
-    </ScreenContainer>
+            <View
+              style={styles.brandFooter}
+              accessible
+              accessibilityRole="image"
+              accessibilityLabel={`Logotipo ${APP_NAME}`}>
+              <Image source={APP_LOGO} style={styles.brandLogo} contentFit="contain" />
+              <Text style={styles.brandMeta}>{APP_NAME} · v1.0.0</Text>
+            </View>
+        </Animated.View>
+      </ScrollView>
+      <ScreenTopFade />
+    </View>
   );
 }
 
-
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: colors.backgroundEnd,
+  },
+  scroll: {
+    backgroundColor: 'transparent',
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: layout.paddingHorizontal,
+  },
+  scrollInner: {
+    flexGrow: 1,
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: 28,
+  },
   userName: {
-    fontFamily: 'LexendGiga_600SemiBold',
-    letterSpacing: 2,
+    marginTop: 14,
+    fontFamily: 'Poppins_700Bold',
+    fontSize: 28,
+    lineHeight: 34,
+    letterSpacing: 0.3,
+    textAlign: 'center',
+    color: colors.textPrimary,
+  },
+  email: {
+    marginTop: 4,
+    fontFamily: 'Poppins_400Regular',
+    fontSize: 14,
+    lineHeight: 20,
+    textAlign: 'center',
+    color: colors.textMuted,
+  },
+  emptyCar: {
+    paddingVertical: 22,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+  },
+  emptyCarText: {
+    fontFamily: 'Poppins_600SemiBold',
+    fontSize: 15,
+    color: colors.textPrimary,
+  },
+  menuCard: {
+    marginTop: spacing.xxl,
+  },
+  menuInner: {
+    paddingHorizontal: 16,
   },
   brandFooter: {
     alignItems: 'center',
@@ -151,5 +230,11 @@ const styles = StyleSheet.create({
   brandLogo: {
     width: 160,
     height: 48,
+  },
+  brandMeta: {
+    marginTop: 12,
+    fontFamily: 'Poppins_400Regular',
+    fontSize: 14,
+    color: colors.textMuted,
   },
 });

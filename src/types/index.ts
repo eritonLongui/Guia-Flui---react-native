@@ -60,6 +60,8 @@ export interface Eletroposto {
   temEstacionamento: boolean;
   abertoAgora: boolean;
   horarioFuncionamento: string;
+  /** Faixas em que o ponto costuma ter menos movimento (simulado). */
+  horarioMenorMovimento: string;
   carregadoresDisponiveis: number;
   carregadoresTotal: number;
   conectores: Conector[];
@@ -81,16 +83,6 @@ export interface Favorito {
   id: string;
   usuarioId: string;
   eletropostoId: string;
-}
-
-export interface Rota {
-  id: string;
-  usuarioId: string;
-  origem: string;
-  destino: string;
-  tempoEstimado: string;
-  distanciaEstimada: string;
-  eletropostoIds: string[];
 }
 
 export interface EletropostoComDistancia extends Eletroposto {

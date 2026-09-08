@@ -1,22 +1,34 @@
+import { CompatibilityMark, corCompatibilidade } from '@/components/CompatibilityMark';
 import { colors } from '@/constants/theme';
-import { Zap } from 'lucide-react-native';
+import type { NivelCompatibilidade } from '@/types';
 import { Platform, StyleSheet, View } from 'react-native';
 
+export const MAP_MARKER_VIEW_SIZE = 40;
 const PIN_SIZE = 40;
 
 interface MapMarkerPinProps {
   selected?: boolean;
+  nivelCompatibilidade?: NivelCompatibilidade;
 }
 
-export function MapMarkerPin({ selected = false }: MapMarkerPinProps) {
+export function MapMarkerPin({
+  selected = false,
+  nivelCompatibilidade = 'compativel',
+}: MapMarkerPinProps) {
+  const borderColor = corCompatibilidade(nivelCompatibilidade);
+  const iconColor = selected ? colors.backgroundEnd : borderColor;
+  const parcial = nivelCompatibilidade === 'parcial';
+
   return (
-    <View style={[styles.pin, selected && styles.pinSelected]}>
-      <Zap
-        size={20}
-        color={selected ? colors.background : colors.accent}
-        fill={selected ? colors.background : colors.accent}
-        strokeWidth={2}
-      />
+    <View
+      collapsable={false}
+      style={[
+        styles.pin,
+        { borderColor },
+        selected && { backgroundColor: borderColor },
+        parcial && styles.pinParcial,
+      ]}>
+      <CompatibilityMark nivel={nivelCompatibilidade} size={18} color={iconColor} />
     </View>
   );
 }
@@ -30,7 +42,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: colors.surface,
     borderWidth: 2,
-    borderColor: colors.accent,
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -43,8 +54,7 @@ const styles = StyleSheet.create({
       },
     }),
   },
-  pinSelected: {
-    backgroundColor: colors.accent,
-    borderColor: colors.accent,
+  pinParcial: {
+    borderStyle: 'dashed',
   },
 });

@@ -1,48 +1,50 @@
-import { Title } from '@/components/Title';
+import { Avatar } from '@/components/Avatar';
 import { Button } from '@/components/Button';
-import { GradientFill } from '@/components/GradientFill';
-import { ScreenContainer } from '@/components/ScreenContainer';
+import { ScreenTopFade } from '@/components/ScreenTopFade';
 import { StationCarousel } from '@/components/StationCarousel';
-import { StationCard } from '@/components/StationCard';
+import { TipCard } from '@/components/TipCard';
+import { Title } from '@/components/Title';
 import { VehicleCard } from '@/components/VehicleCard';
+import { colors, layout, spacing } from '@/constants/theme';
 import { obterSaudacao } from '@/lib/formatadores';
+import { useAuth } from '@/providers/AuthProvider';
+import { useMockMode } from '@/providers/MockModeProvider';
 import { useVeiculoAtivo } from '@/providers/VeiculoAtivoProvider';
-import {
-  eletropostoRepository,
-  rotaRepository,
-  usuarioRepository,
-} from '@/repositories/mockRepositories';
-import type { Eletroposto, Rota, Usuario } from '@/types';
+import { eletropostoRepository, usuarioRepository } from '@/repositories';
+import type { Eletroposto, Usuario } from '@/types';
 import { router } from 'expo-router';
-import { Lightbulb, Route, User } from 'lucide-react-native';
-import { colors, spacing } from '@/constants/theme';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Image, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import Animated, { FadeIn } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
+  const insets = useSafeAreaInsets();
   const { veiculo, carregando: carregandoVeiculo } = useVeiculoAtivo();
+  const { usuario: usuarioAuth } = useAuth();
+  const { isMockMode } = useMockMode();
   const [usuario, setUsuario] = useState<Usuario | null>(null);
   const [proximos, setProximos] = useState<Eletroposto[]>([]);
-  const [recomendado, setRecomendado] = useState<Eletroposto | null>(null);
-  const [ultimaRota, setUltimaRota] = useState<Rota | null>(null);
   const [carregando, setCarregando] = useState(true);
 
   useEffect(() => {
     let mounted = true;
 
     async function carregar() {
-      const [u, p, r, rota] = await Promise.all([
-        usuarioRepository.obterAtual(),
-        eletropostoRepository.listarProximos(3),
-        eletropostoRepository.listarRecomendados(1),
-        usuarioRepository.obterAtual().then((usr) => rotaRepository.obterUltima(usr.id)),
-      ]);
-      if (!mounted) return;
-      setUsuario(u);
-      setProximos(p);
-      setRecomendado(r[0] ?? null);
-      setUltimaRota(rota);
-      setCarregando(false);
+      try {
+        const [u, p] = await Promise.all([
+          usuarioRepository.obterAtual(),
+          eletropostoRepository.listarProximos(3),
+        ]);
+        if (!mounted) return;
+        const atual = u ?? usuarioAuth;
+        setUsuario(atual);
+        setProximos(p);
+      } catch {
+        if (!mounted) return;
+      } finally {
+        if (mounted) setCarregando(false);
+      }
     }
 
     carregar();
@@ -50,147 +52,143 @@ export default function HomeScreen() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [usuarioAuth, isMockMode]);
 
   const carregandoTela = carregando || carregandoVeiculo;
+  const saudacao = obterSaudacao();
+
+  if (carregandoTela) {
+    return (
+      <View
+        style={styles.screen}
+        accessibilityRole="progressbar"
+        accessibilityLabel="Carregando">
+        <ActivityIndicator aria-hidden={true} color={colors.textPrimary} />
+      </View>
+    );
+  }
 
   return (
-    <ScreenContainer scroll>
-      {carregandoTela ? (
-        <View
-          className="min-h-[50%] flex-1 items-center justify-center py-24"
-          accessibilityRole="progressbar"
-          accessibilityLabel="Carregando">
-          <ActivityIndicator color={colors.textPrimary} />
-        </View>
-      ) : (
-        <>
-          <View className="flex-row items-center gap-4 pt-4">
-            {usuario ? (
-              <Image
-                source={require('../../../assets/images/foto-perfil.png')}
-                style={styles.avatar}
-                resizeMode="cover"
-                accessibilityLabel={`Foto de ${usuario.nome}`}
-              />
-            ) : (
-              <View style={styles.avatarFallback}>
-                <User size={24} color={colors.textPrimary} />
-              </View>
-            )}
-            <View className="flex-1">
-              <Text className="font-poppins text-lg text-text-secondary">{obterSaudacao()},</Text>
-              <Text style={styles.userName} className="text-2xl uppercase text-text-primary">
-                {usuario?.nome}
-              </Text>
-            </View>
-          </View>
-
-          {veiculo && (
-            <View style={styles.section}>
-              <VehicleCard veiculo={veiculo} />
-            </View>
-          )}
-
-          <View style={styles.section}>
-            <Button
-              label="Encontrar Recarga"
-              accessibilityHint="Abre o mapa para buscar eletropostos"
-              onPress={() => router.push('/(tabs)/explorar')}
-            />
-          </View>
-
-          <View style={styles.section}>
-            <Title size="sm" style={styles.sectionTitle}>
-              Perto de Você
-            </Title>
-            <StationCarousel
-              data={proximos}
-              onSelect={(ep) => router.push(`/eletroposto/${ep.id}`)}
-            />
-          </View>
-
-          {recomendado && (
-            <View style={styles.section}>
-              <Title size="sm" style={styles.sectionTitle}>
-                Recomendado para Você
-              </Title>
-              <StationCard
-                eletroposto={recomendado}
-                onPress={() => router.push(`/eletroposto/${recomendado.id}`)}
-              />
-            </View>
-          )}
-
-          {ultimaRota && (
-            <GradientFill variant="card" rounded style={styles.section}>
-              <View className="p-5">
-                <View className="mb-3 flex-row items-center gap-2">
-                  <Route size={18} color={colors.textPrimary} />
-                  <Title size="lg" className="shrink-0">
-                    Última Rota
-                  </Title>
-                </View>
-                <Text className="font-poppins text-base text-text-secondary">
-                  {ultimaRota.origem} → {ultimaRota.destino}
-                </Text>
-                <Text className="mt-2 font-poppins text-base text-text-primary">
-                  {ultimaRota.distanciaEstimada} · {ultimaRota.tempoEstimado}
+    <View style={styles.screen}>
+      <ScrollView
+        style={styles.scroll}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: insets.bottom + layout.floatingTabBar.scrollPadding },
+        ]}>
+        <Animated.View entering={FadeIn.duration(400)} style={styles.scrollInner}>
+          <View style={[styles.headerBand, { paddingTop: insets.top + 20 }]}>
+            <View style={styles.helloRow}>
+              <View style={styles.helloText}>
+                <Text style={styles.greeting}>{saudacao},</Text>
+                <Text style={styles.userName} numberOfLines={1}>
+                  {usuario?.nome}
                 </Text>
               </View>
-            </GradientFill>
-          )}
+              <Avatar nome={usuario?.nome} size={56} />
+            </View>
+          </View>
 
-          <GradientFill
-            variant="card"
-            rounded
-            style={ultimaRota ? styles.stackedCard : styles.section}>
-            <View className="p-5">
-              <View className="mb-3 flex-row items-center gap-2">
-                <Lightbulb size={18} color={colors.textPrimary} />
-                <Title size="lg" className="shrink-0">
-                  Dica de Recarga
+          <View style={styles.bodySheet}>
+            {veiculo ? (
+              <View style={styles.block}>
+                <VehicleCard veiculo={veiculo} />
+              </View>
+            ) : null}
+
+            <View style={styles.blockTight}>
+              <Button
+                label="Encontrar Recarga"
+                accessibilityHint="Abre o mapa para buscar eletropostos"
+                onPress={() => router.push('/(tabs)/explorar')}
+              />
+            </View>
+
+            {proximos.length > 0 ? (
+              <View style={styles.section}>
+                <Title size="sm" style={styles.sectionTitle}>
+                  Perto de você
                 </Title>
+                <StationCarousel
+                  data={proximos}
+                  onSelect={(ep) => router.push(`/eletroposto/${ep.id}`)}
+                />
               </View>
-              <Text className="font-poppins text-base leading-6 text-text-secondary">
-                Carregue até 80% em viagens longas para preservar a bateria e reduzir o tempo de
-                espera na fila.
-              </Text>
+            ) : null}
+
+            <View style={styles.section}>
+              <TipCard />
             </View>
-          </GradientFill>
-        </>
-      )}
-    </ScreenContainer>
+          </View>
+        </Animated.View>
+      </ScrollView>
+      <ScreenTopFade />
+    </View>
   );
 }
 
-const AVATAR_SIZE = 52;
-
 const styles = StyleSheet.create({
-  avatar: {
-    width: AVATAR_SIZE,
-    height: AVATAR_SIZE,
-    borderRadius: AVATAR_SIZE / 2,
+  screen: {
+    flex: 1,
+    backgroundColor: colors.backgroundEnd,
   },
-  avatarFallback: {
-    width: AVATAR_SIZE,
-    height: AVATAR_SIZE,
-    borderRadius: AVATAR_SIZE / 2,
+  scroll: {
+    backgroundColor: 'transparent',
+  },
+  scrollContent: {
+    flexGrow: 1,
+  },
+  scrollInner: {
+    flexGrow: 1,
+  },
+  headerBand: {
+    backgroundColor: colors.surface,
+    paddingHorizontal: layout.paddingHorizontal,
+    paddingBottom: 48,
+  },
+  helloRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.elevated,
+    gap: 16,
+  },
+  helloText: {
+    flex: 1,
+    minWidth: 0,
+  },
+  greeting: {
+    fontFamily: 'Poppins_400Regular',
+    fontSize: 16,
+    lineHeight: 22,
+    color: colors.textSecondary,
   },
   userName: {
-    fontFamily: 'LexendGiga_600SemiBold',
-    letterSpacing: 2,
+    marginTop: 2,
+    fontFamily: 'Poppins_700Bold',
+    fontSize: 28,
+    lineHeight: 34,
+    letterSpacing: 0.3,
+    color: colors.textPrimary,
+  },
+  bodySheet: {
+    flexGrow: 1,
+    backgroundColor: colors.backgroundEnd,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    marginTop: -24,
+    paddingTop: 28,
+    paddingHorizontal: layout.paddingHorizontal,
+  },
+  block: {
+    marginTop: 0,
+  },
+  blockTight: {
+    marginTop: spacing.lg,
   },
   section: {
     marginTop: spacing.xxl,
   },
   sectionTitle: {
     marginBottom: spacing.md,
-  },
-  stackedCard: {
-    marginTop: spacing.xl,
   },
 });

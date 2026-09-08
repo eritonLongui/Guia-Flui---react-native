@@ -13,9 +13,11 @@ export const colors = {
   accent: '#31FE50',
   accentDark: '#234A29',
   accentBorder: 'rgba(49, 254, 80, 0.45)',
+  white: '#FFFFFF',
   textPrimary: '#FFFFFF',
   textSecondary: '#C7C7C7',
-  textMuted: '#8A8A8A',
+  /** Texto secundário — ≥ 4.5:1 no elevated (`#252526`), WCAG AA. */
+  textMuted: '#909090',
   /** Texto de chips/tags neutras — contraste sobre fundo elevated. */
   chipText: '#F0F0F0',
   chipBackground: 'rgba(255, 255, 255, 0.1)',
@@ -64,7 +66,7 @@ export const layout = {
   inputRadius: 16,
   buttonRadius: 12,
   /** Altura fixa dos cards no carrossel da Home. */
-  carouselCardHeight: 220,
+  carouselCardHeight: 196,
   /** Altura fixa dos cards de avaliação no carrossel do detalhe. */
   reviewCardHeight: 156,
   carouselTitleHeight: 56,

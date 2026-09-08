@@ -1,3 +1,4 @@
+import { setMockModeEnabled } from '@/repositories/dataSource';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 
@@ -10,13 +11,13 @@ interface MockModeContextData {
 }
 
 const MockModeContext = createContext<MockModeContextData>({
-  isMockMode: true,
+  isMockMode: false,
   toggleMockMode: () => {},
   carregando: true,
 });
 
 export function MockModeProvider({ children }: { children: ReactNode }) {
-  const [isMockMode, setIsMockMode] = useState(true);
+  const [isMockMode, setIsMockMode] = useState(false);
   const [carregando, setCarregando] = useState(true);
 
   useEffect(() => {
@@ -24,7 +25,9 @@ export function MockModeProvider({ children }: { children: ReactNode }) {
 
     AsyncStorage.getItem(STORAGE_KEY).then((value) => {
       if (!mounted) return;
-      if (value !== null) setIsMockMode(value === 'true');
+      const next = value === 'true';
+      setMockModeEnabled(next);
+      setIsMockMode(next);
       setCarregando(false);
     });
 
@@ -36,6 +39,7 @@ export function MockModeProvider({ children }: { children: ReactNode }) {
   const toggleMockMode = useCallback(() => {
     setIsMockMode((prev) => {
       const next = !prev;
+      setMockModeEnabled(next);
       AsyncStorage.setItem(STORAGE_KEY, String(next));
       return next;
     });

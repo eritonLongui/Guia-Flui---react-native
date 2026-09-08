@@ -25,6 +25,13 @@
     "plugins": [
       "expo-router",
       "expo-font",
+      "expo-secure-store",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "O Guia Flui usa sua localização para mostrar eletropostos próximos no mapa."
+        }
+      ],
       [
         "expo-splash-screen",
         {

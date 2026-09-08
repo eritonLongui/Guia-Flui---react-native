@@ -1,59 +1,99 @@
-import { ScreenEdgeFades } from '@/components/ScreenEdgeFades';
-import { Title } from '@/components/Title';
-import { ExploreBottomSheet } from '@/components/ExploreBottomSheet';
+import { ExploreResultsSheet } from '@/components/ExploreResultsSheet';
+import { FiltrosSheet } from '@/components/FiltrosSheet';
 import { Input } from '@/components/Input';
 import { MapStationPopup } from '@/components/MapStationPopup';
-import { MapaExplorar } from '@/components/MapaExplorar';
+import { MapaExplorar, type MapaExplorarHandle } from '@/components/MapaExplorar';
+import { ScreenBottomFade } from '@/components/ScreenBottomFade';
 import { colors, layout, spacing } from '@/constants/theme';
-import { HIT_SLOP_PADRAO, anunciarMensagem } from '@/lib/a11y';
-import { eletropostoRepository } from '@/repositories/mockRepositories';
+import { HIT_SLOP_PADRAO } from '@/lib/a11y';
+import { useExplorarQuery } from '@/providers/ExplorarQueryProvider';
+import { useLocalizacao } from '@/providers/LocalizacaoProvider';
 import type { Eletroposto } from '@/types';
 import { router } from 'expo-router';
-import { SlidersHorizontal } from 'lucide-react-native';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Locate, SlidersHorizontal } from 'lucide-react-native';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  Keyboard,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  type TextInput,
+} from 'react-native';
+import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function ExplorarScreen() {
   const insets = useSafeAreaInsets();
-  const [eletropostos, setEletropostos] = useState<Eletroposto[]>([]);
-  const [busca, setBusca] = useState('');
+  const { localizacao, isManual } = useLocalizacao();
+  const { busca, setBusca, filtros, setFiltros, filtrados, filtrosAtivos } = useExplorarQuery();
+
+  const buscaRef = useRef<TextInput>(null);
+  const mapaRef = useRef<MapaExplorarHandle>(null);
+  const fecharTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const [selecionado, setSelecionado] = useState<string | null>(null);
-
-  useEffect(() => {
-    let mounted = true;
-
-    const timer = setTimeout(async () => {
-      const dados = busca
-        ? await eletropostoRepository.buscar(busca)
-        : await eletropostoRepository.listar();
-      if (!mounted) return;
-      setEletropostos(dados);
-      if (busca.trim()) {
-        anunciarMensagem(
-          `${dados.length} ${dados.length === 1 ? 'resultado encontrado' : 'resultados encontrados'}`,
-        );
-      }
-    }, 150);
-
-    return () => {
-      mounted = false;
-      clearTimeout(timer);
-    };
-  }, [busca]);
+  const [filtrosAbertos, setFiltrosAbertos] = useState(false);
+  const [resultadosAbertos, setResultadosAbertos] = useState(false);
+  const [origemForaDaVisao, setOrigemForaDaVisao] = useState(false);
 
   const eletropostoSelecionado = useMemo(
-    () => eletropostos.find((ep) => ep.id === selecionado) ?? null,
-    [eletropostos, selecionado],
+    () => filtrados.find((ep) => ep.id === selecionado) ?? null,
+    [filtrados, selecionado],
   );
 
-  const handleSelectMarker = useCallback((id: string) => {
-    setSelecionado((atual) => (atual === id ? null : id));
+  const cancelarFecharResultados = useCallback(() => {
+    if (fecharTimer.current) {
+      clearTimeout(fecharTimer.current);
+      fecharTimer.current = null;
+    }
   }, []);
+
+  const fecharResultados = useCallback(() => {
+    cancelarFecharResultados();
+    setResultadosAbertos(false);
+    buscaRef.current?.blur();
+    Keyboard.dismiss();
+  }, [cancelarFecharResultados]);
+
+  const agendarFecharResultados = useCallback(() => {
+    cancelarFecharResultados();
+    fecharTimer.current = setTimeout(() => {
+      setResultadosAbertos(false);
+    }, 160);
+  }, [cancelarFecharResultados]);
+
+  useEffect(() => () => cancelarFecharResultados(), [cancelarFecharResultados]);
+
+  useEffect(() => {
+    if (selecionado && !filtrados.some((ep) => ep.id === selecionado)) {
+      setSelecionado(null);
+    }
+  }, [filtrados, selecionado]);
+
+  const handleSelectMarker = useCallback((id: string) => {
+    cancelarFecharResultados();
+    setResultadosAbertos(false);
+    buscaRef.current?.blur();
+    Keyboard.dismiss();
+    setSelecionado((atual) => (atual === id ? null : id));
+  }, [cancelarFecharResultados]);
 
   const handleSelect = (ep: Eletroposto) => {
     router.push(`/eletroposto/${ep.id}`);
   };
+
+  const centralizarOrigem = () => {
+    if (selecionado) {
+      setSelecionado(null);
+      return;
+    }
+    mapaRef.current?.centralizarOrigem();
+  };
+
+  const tabBarTop =
+    insets.bottom + layout.floatingTabBar.bottomOffset + layout.floatingTabBar.height;
 
   if (Platform.OS === 'web') {
     return (
@@ -63,96 +103,157 @@ export default function ExplorarScreen() {
             <Input
               icon
               placeholder="Buscar eletroposto"
+              accessibilityLabel="Buscar eletroposto"
               value={busca}
               onChangeText={setBusca}
             />
           </View>
-        <Pressable
-          style={styles.filterButton}
-          accessibilityRole="button"
-          accessibilityLabel="Filtros"
-          accessibilityHint="Abre opções de filtro dos eletropostos"
-          hitSlop={HIT_SLOP_PADRAO}
-          onPress={() => Alert.alert('Filtros', 'Filtros disponíveis em breve.')}>
-          <SlidersHorizontal aria-hidden={true} size={20} color={colors.textPrimary} />
-        </Pressable>
+          <Pressable
+            style={[styles.filterButton, filtrosAtivos > 0 && styles.filterButtonActive]}
+            accessibilityRole="button"
+            accessibilityLabel={
+              filtrosAtivos > 0
+                ? `Filtros, ${filtrosAtivos} ativos`
+                : 'Filtros e localização'
+            }
+            accessibilityHint="Abre filtros e definição de localização"
+            hitSlop={HIT_SLOP_PADRAO}
+            onPress={() => setFiltrosAbertos(true)}>
+            <SlidersHorizontal aria-hidden={true} size={20} color={colors.textPrimary} />
+          </Pressable>
         </View>
         <View className="flex-1 items-center justify-center">
           <Text className="font-poppins text-text-secondary">
             Mapa disponível no app mobile
           </Text>
         </View>
-        <View className="absolute bottom-0 left-0 right-0 max-h-[60%] rounded-t-card bg-surface pt-4">
-          <View className="mb-3 items-center px-6">
-            <Title size="sm" className="text-center">
-              {eletropostos.length} resultados encontrados
-            </Title>
-          </View>
-          <View className="gap-3 px-6 pb-8">
-            {eletropostos.map((ep) => (
-              <Pressable key={ep.id} onPress={() => handleSelect(ep)}>
-                <View className="rounded-card bg-elevated p-4">
-                  <Text className="font-poppins-bold text-xl tracking-title text-text-primary">{ep.nome}</Text>
-                  <Text className="mt-1 font-poppins text-xs text-text-muted">{ep.endereco}</Text>
-                </View>
-              </Pressable>
-            ))}
-          </View>
-        </View>
+        <FiltrosSheet
+          visible={filtrosAbertos}
+          value={filtros}
+          onClose={() => setFiltrosAbertos(false)}
+          onApply={setFiltros}
+        />
       </View>
     );
   }
-
-  const searchTopInset =
-    insets.top + spacing.lg + layout.searchHeight + spacing.md;
 
   return (
     <View style={styles.container}>
       <View style={styles.mapArea}>
         <MapaExplorar
-          eletropostos={eletropostos}
+          ref={mapaRef}
+          eletropostos={filtrados}
           selecionado={selecionado}
+          origem={localizacao}
           onSelectMarker={handleSelectMarker}
           onOpenDetalhe={handleSelect}
+          onPressMap={fecharResultados}
+          onOrigemForaDaVisao={setOrigemForaDaVisao}
         />
       </View>
 
       {eletropostoSelecionado && (
         <MapStationPopup
+          key={eletropostoSelecionado.id}
           eletroposto={eletropostoSelecionado}
           onClose={() => setSelecionado(null)}
           onVerMais={() => handleSelect(eletropostoSelecionado)}
         />
       )}
 
+      {origemForaDaVisao && !resultadosAbertos ? (
+        <Animated.View
+          entering={FadeIn.duration(180)}
+          exiting={FadeOut.duration(140)}
+          pointerEvents="box-none"
+          style={[styles.recenterWrap, { bottom: tabBarTop + spacing.md }]}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Centralizar na sua localização"
+            accessibilityHint="Move o mapa de volta para o ponto de origem"
+            hitSlop={HIT_SLOP_PADRAO}
+            onPress={centralizarOrigem}
+            style={styles.recenterButton}>
+            <Locate aria-hidden={true} size={16} color={colors.textPrimary} />
+            <Text style={styles.recenterLabel}>Centralizar</Text>
+          </Pressable>
+        </Animated.View>
+      ) : null}
+
       <View
         pointerEvents="box-none"
         style={[styles.searchBar, { top: insets.top + spacing.lg }]}>
         <View style={styles.searchInput}>
           <Input
+            ref={buscaRef}
             icon
             placeholder="Buscar eletroposto"
+            accessibilityLabel="Buscar eletroposto"
             value={busca}
-            onChangeText={setBusca}
+            onChangeText={(texto) => {
+              setBusca(texto);
+              cancelarFecharResultados();
+              setResultadosAbertos(true);
+            }}
+            onFocus={() => {
+              cancelarFecharResultados();
+              setSelecionado(null);
+              setResultadosAbertos(true);
+            }}
+            onBlur={agendarFecharResultados}
+            returnKeyType="search"
+            onSubmitEditing={() => setResultadosAbertos(true)}
+            autoCorrect={false}
+            autoComplete="off"
+            textContentType="none"
           />
         </View>
         <Pressable
-          style={styles.filterButton}
+          style={[
+            styles.filterButton,
+            (filtrosAtivos > 0 || isManual) && styles.filterButtonActive,
+          ]}
           accessibilityRole="button"
-          accessibilityLabel="Filtros"
-          accessibilityHint="Abre opções de filtro dos eletropostos"
+          accessibilityLabel={
+            filtrosAtivos > 0
+              ? `Filtros, ${filtrosAtivos} ativos`
+              : 'Filtros e localização'
+          }
+          accessibilityHint="Abre filtros e definição de localização"
           hitSlop={HIT_SLOP_PADRAO}
-          onPress={() => Alert.alert('Filtros', 'Filtros disponíveis em breve.')}>
+          onPress={() => {
+            fecharResultados();
+            setFiltrosAbertos(true);
+          }}>
           <SlidersHorizontal aria-hidden={true} size={20} color={colors.textPrimary} />
+          {filtrosAtivos > 0 ? (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{filtrosAtivos}</Text>
+            </View>
+          ) : null}
         </Pressable>
       </View>
 
-      <ExploreBottomSheet
-        eletropostos={eletropostos}
+      <ExploreResultsSheet
+        visible={resultadosAbertos}
+        eletropostos={filtrados}
         onSelect={handleSelect}
-        topInset={searchTopInset}
+        onClose={fecharResultados}
+        onKeepOpen={cancelarFecharResultados}
+        topOffset={insets.top + spacing.lg + layout.searchHeight + spacing.md}
       />
-      <ScreenEdgeFades />
+
+      <ScreenBottomFade
+        gradientId="explorarBottomFade"
+        style={styles.bottomFade}
+      />
+
+      <FiltrosSheet
+        visible={filtrosAbertos}
+        value={filtros}
+        onClose={() => setFiltrosAbertos(false)}
+        onApply={setFiltros}
+      />
     </View>
   );
 }
@@ -165,6 +266,10 @@ const styles = StyleSheet.create({
   mapArea: {
     flex: 1,
     overflow: 'hidden',
+  },
+  bottomFade: {
+    zIndex: 48,
+    elevation: 48,
   },
   searchBar: {
     position: 'absolute',
@@ -187,5 +292,53 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.surfaceEnd,
+  },
+  filterButtonActive: {
+    borderColor: colors.accentBorder,
+  },
+  recenterWrap: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    zIndex: 44,
+  },
+  recenterButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    height: 40,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surfaceEnd,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.28,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  recenterLabel: {
+    fontFamily: 'Poppins_500Medium',
+    fontSize: 13,
+    color: colors.textPrimary,
+  },
+  badge: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    minWidth: 16,
+    height: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.accent,
+    paddingHorizontal: 3,
+  },
+  badgeText: {
+    fontFamily: 'Poppins_700Bold',
+    fontSize: 10,
+    color: colors.backgroundEnd,
   },
 });

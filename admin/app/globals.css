@@ -1,0 +1,83 @@
+@import "tailwindcss";
+@import "leaflet/dist/leaflet.css";
+
+:root {
+  --background: #131313;
+  --background-start: #151617;
+  --surface: #1e1e1f;
+  --surface-start: #282829;
+  --elevated: #252526;
+  --border: #4a4a4a;
+  --accent: #31fe50;
+  --accent-dark: #234a29;
+  --danger: #ff6b6b;
+  --warning: #ffb800;
+  --info: #5ac8fa;
+  --foreground: #ffffff;
+  --muted: #8a8a8a;
+  --secondary: #c7c7c7;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-background-start: var(--background-start);
+  --color-surface: var(--surface);
+  --color-surface-start: var(--surface-start);
+  --color-elevated: var(--elevated);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-dark: var(--accent-dark);
+  --color-danger: var(--danger);
+  --color-warning: var(--warning);
+  --color-info: var(--info);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-secondary: var(--secondary);
+  --font-sans: var(--font-poppins);
+  --font-heading: var(--font-lexend);
+}
+
+html,
+body {
+  min-height: 100%;
+  background: var(--background);
+  color: var(--foreground);
+}
+
+body {
+  font-family: var(--font-poppins), system-ui, sans-serif;
+}
+
+h1,
+h2,
+h3,
+.font-heading {
+  font-family: var(--font-lexend), var(--font-poppins), system-ui, sans-serif;
+}
+
+.leaflet-container {
+  background: #1a1a1a;
+  font-family: inherit;
+}
+
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: #1e1e1f;
+  color: #fff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+.leaflet-popup-content {
+  margin: 12px 14px;
+}
+
+.leaflet-control-zoom a {
+  background: #252526 !important;
+  color: #fff !important;
+  border-color: #4a4a4a !important;
+}
+
+.leaflet-control-attribution {
+  background: rgba(19, 19, 19, 0.8) !important;
+  color: #8a8a8a !important;
+}

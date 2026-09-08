@@ -1,12 +1,12 @@
-import { CompatibilityBadge } from '@/components/CompatibilityBadge';
-import { FeatureChip } from '@/components/FeatureChip';
+import { CompatibilityMark, corCompatibilidade } from '@/components/CompatibilityMark';
 import { GradientFill } from '@/components/GradientFill';
 import { OpenNowBadge } from '@/components/OpenNowBadge';
-import { criarRotuloEletroposto } from '@/lib/a11y';
+import { Rating } from '@/components/Rating';
+import { colors, layout } from '@/constants/theme';
+import { criarRotuloCompatibilidade, criarRotuloEletroposto } from '@/lib/a11y';
 import { formatarDistancia } from '@/lib/formatadores';
 import type { Eletroposto } from '@/types';
-import { Clock, MapPin, Zap } from 'lucide-react-native';
-import { colors, layout } from '@/constants/theme';
+import { ChevronRight, MapPin, Star } from 'lucide-react-native';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 interface StationCardProps {
@@ -19,62 +19,64 @@ interface StationCardProps {
 export function StationCard({
   eletroposto,
   onPress,
-  compact = false,
   carousel = false,
 }: StationCardProps) {
+  const zapColor = corCompatibilidade(eletroposto.nivelCompatibilidade);
+  const temAvaliacoes = eletroposto.quantidadeAvaliacoes > 0;
+
   const content = (
     <GradientFill
       variant="card"
-      rounded
+      rounded={layout.cardRadius}
       style={[styles.card, carousel && styles.carouselCard]}>
       <View
         style={[styles.inner, carousel && styles.innerFixed]}
         aria-hidden={true}
         importantForAccessibility="no">
-        <View style={styles.header}>
-          <CompatibilityBadge nivel={eletroposto.nivelCompatibilidade} />
-          {eletroposto.distanciaKm !== undefined && (
-            <View style={styles.row}>
-              <MapPin aria-hidden={true} size={17} color={colors.textPrimary} />
-              <Text style={styles.iconTextGap} className="font-poppins text-base text-text-primary">
-                {formatarDistancia(eletroposto.distanciaKm)}
-              </Text>
-            </View>
-          )}
-        </View>
-
-        <View style={[styles.body, carousel && styles.bodyFixed]}>
-          <View style={styles.topBlock}>
-            <Text
-              style={styles.eletropostoName}
-              className="font-poppins-bold text-2xl text-text-primary"
-              numberOfLines={2}>
+        <View style={styles.top}>
+          <View style={styles.nameRow}>
+            <Text style={styles.name} numberOfLines={2}>
               {eletroposto.nome}
             </Text>
-            <View style={styles.stats}>
-              <View style={styles.row}>
-                <Clock aria-hidden={true} size={17} color={colors.textPrimary} />
-                <Text style={styles.iconTextGap} className="font-poppins text-base text-text-secondary">
-                  Fila {eletroposto.tempoFilaMinutos}min
-                </Text>
-              </View>
-              <View style={[styles.row, styles.groupGap]}>
-                <Zap aria-hidden={true} size={17} color={colors.textPrimary} />
-                <Text style={styles.iconTextGap} className="font-poppins text-base text-text-secondary">
-                  {eletroposto.tempoCargaMinutos}min
-                </Text>
-              </View>
+            <View
+              style={styles.zap}
+              accessibilityRole="image"
+              accessibilityLabel={criarRotuloCompatibilidade(eletroposto.nivelCompatibilidade)}>
+              <CompatibilityMark
+                nivel={eletroposto.nivelCompatibilidade}
+                size={22}
+                color={zapColor}
+              />
             </View>
           </View>
 
-          {!compact && (
-            <View style={styles.chipsRow}>
-              {eletroposto.abertoAgora && <OpenNowBadge />}
-              {eletroposto.conectores.map((c) => (
-                <FeatureChip key={c.tipo} label={c.tipo} />
-              ))}
+          {temAvaliacoes ? (
+            <Rating nota={eletroposto.nota} quantidadeAvaliacoes={eletroposto.quantidadeAvaliacoes} />
+          ) : (
+            <View style={styles.noRating}>
+              <Star aria-hidden={true} size={13} color={colors.warning} fill={colors.warning} />
+              <Text style={styles.noRatingText}>Sem avaliação</Text>
             </View>
           )}
+
+          <View style={styles.addressRow}>
+            <View style={styles.addressWrap}>
+              <MapPin aria-hidden={true} size={14} color={colors.textMuted} />
+              <Text style={styles.address} numberOfLines={1}>
+                {eletroposto.endereco}
+              </Text>
+            </View>
+            {eletroposto.distanciaKm !== undefined ? (
+              <Text style={styles.distance}>{formatarDistancia(eletroposto.distanciaKm)}</Text>
+            ) : null}
+          </View>
+        </View>
+
+        <View style={styles.footer}>
+          <OpenNowBadge aberto={eletroposto.abertoAgora} style={styles.badge} />
+          <View style={styles.arrowBtn}>
+            <ChevronRight aria-hidden={true} size={16} color={colors.textMuted} strokeWidth={2.2} />
+          </View>
         </View>
       </View>
     </GradientFill>
@@ -107,49 +109,92 @@ const styles = StyleSheet.create({
     height: layout.carouselCardHeight,
   },
   inner: {
-    padding: 16,
+    padding: 18,
+    gap: 14,
   },
   innerFixed: {
     flex: 1,
+    justifyContent: 'space-between',
   },
-  header: {
+  top: {
+    gap: 10,
+  },
+  nameRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  body: {
-    marginTop: 12,
-  },
-  bodyFixed: {
-    flex: 1,
-    justifyContent: 'space-between',
-  },
-  topBlock: {
     gap: 12,
   },
-  eletropostoName: {
-    letterSpacing: 1,
+  name: {
+    flex: 1,
+    minWidth: 0,
+    fontFamily: 'Poppins_700Bold',
+    fontSize: 22,
+    lineHeight: 26,
+    letterSpacing: 0.2,
+    includeFontPadding: false,
+    color: colors.textPrimary,
   },
-  stats: {
+  zap: {
+    flexShrink: 0,
+    width: 22,
+    height: 26,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  noRating: {
     flexDirection: 'row',
     alignItems: 'center',
+    flexShrink: 0,
   },
-  chipsRow: {
+  noRatingText: {
+    marginLeft: 6,
+    fontFamily: 'Poppins_600SemiBold',
+    fontSize: 13,
+    lineHeight: 18,
+    color: colors.textMuted,
+  },
+  addressRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
     alignItems: 'center',
-    alignSelf: 'stretch',
-    marginTop: 32,
+    gap: 10,
   },
-  row: {
+  addressWrap: {
+    flex: 1,
+    minWidth: 0,
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 4,
   },
-  iconTextGap: {
-    marginLeft: 8,
+  address: {
+    flex: 1,
+    minWidth: 0,
+    fontFamily: 'Poppins_400Regular',
+    fontSize: 13,
+    lineHeight: 18,
+    color: colors.textSecondary,
   },
-  groupGap: {
-    marginLeft: 20,
+  distance: {
+    flexShrink: 0,
+    fontFamily: 'Poppins_400Regular',
+    fontSize: 13,
+    lineHeight: 18,
+    color: colors.textSecondary,
+  },
+  footer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 4,
+  },
+  badge: {
+    alignSelf: 'center',
+  },
+  arrowBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.chipBackground,
   },
 });

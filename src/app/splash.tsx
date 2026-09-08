@@ -1,30 +1,41 @@
+import { GradientBackground } from '@/components/GradientFill';
 import { APP_NAME } from '@/constants/app';
-import { Title } from '@/components/Title';
-import { GradientBackground, GradientFill } from '@/components/GradientFill';
-import { colors } from '@/constants/theme';
+import { APP_SPLASH_ICON } from '@/constants/assets';
+import { useAuth } from '@/providers/AuthProvider';
+import { useMockMode } from '@/providers/MockModeProvider';
+import { Image } from 'expo-image';
 import { router } from 'expo-router';
-import { Zap } from 'lucide-react-native';
 import { useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 export default function SplashScreen() {
+  const { session, carregando } = useAuth();
+  const { isMockMode, carregando: carregandoMock } = useMockMode();
+
   useEffect(() => {
+    if (carregando || carregandoMock) return;
+
     const timer = setTimeout(() => {
-      router.replace('/(tabs)');
-    }, 2000);
+      if (session || isMockMode) {
+        router.replace('/(tabs)');
+        return;
+      }
+      router.replace('/(auth)/welcome');
+    }, 1600);
+
     return () => clearTimeout(timer);
-  }, []);
+  }, [carregando, carregandoMock, session, isMockMode]);
 
   return (
     <View className="flex-1 items-center justify-center">
       <GradientBackground />
-      <GradientFill variant="card" rounded style={styles.logoCard}>
-        <View style={styles.logoInner}>
-          <Zap size={40} color={colors.textPrimary} />
-        </View>
-      </GradientFill>
-      <Title size="hero">{APP_NAME}</Title>
-      <Text className="mt-2 font-poppins text-sm text-text-muted">
+      <Image
+        source={APP_SPLASH_ICON}
+        style={styles.logo}
+        contentFit="contain"
+        accessibilityLabel={`Logo ${APP_NAME}`}
+      />
+      <Text className="mt-6 font-poppins text-sm text-text-muted">
         Recarga inteligente para seu EV
       </Text>
     </View>
@@ -32,13 +43,8 @@ export default function SplashScreen() {
 }
 
 const styles = StyleSheet.create({
-  logoCard: {
-    marginBottom: 24,
-  },
-  logoInner: {
-    width: 80,
-    height: 80,
-    alignItems: 'center',
-    justifyContent: 'center',
+  logo: {
+    width: 140,
+    height: 140,
   },
 });

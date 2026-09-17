@@ -34,6 +34,12 @@
         }
       ],
       [
+        "expo-audio",
+        {
+          "microphonePermission": "O Guia Flui usa o microfone para o assistente de voz no mapa."
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "backgroundColor": "#131313",

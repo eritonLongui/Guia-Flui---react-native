@@ -57,6 +57,15 @@ npx supabase projects api-keys --project-ref SEU_PROJECT_REF
 
 Cole a URL e a `anon` key no `.env`.
 
+**Assistente de voz (mapa):** o app grava sua pergunta com `expo-audio` e manda o áudio para a Edge Function `assistente-voz`, que transcreve e responde pela OpenAI. A chave OpenAI **não** entra no app.
+
+```bash
+npx supabase secrets set OPENAI_API_KEY=sk-...
+npx supabase functions deploy assistente-voz
+```
+
+Precisa de build nativo (`npm run ios` / `npm run android`) porque o microfone não roda no Expo Go. No Simulator do iOS funciona: ligue **I/O → Audio Input → microfone do Mac**. A flag `EXPO_PUBLIC_ASSISTENTE_VOZ` (padrão `true`) liga/desliga o botão no mapa, e o overlay sempre aceita a pergunta digitada como alternativa.
+
 **Confirm email (feature flag):** o app lê `EXPO_PUBLIC_REQUIRE_EMAIL_CONFIRMATION` (padrão `false`). Com `false`, o cadastro entra na hora — no dashboard, Authentication → Providers → Email, desative **Confirm email**. Para voltar a exigir o link, ligue os dois: a flag `true` e Confirm email no Supabase.
 
 Os 12 eletropostos e as avaliações seedadas vão no banco na migration `supabase/migrations/20260831130000_init_rota.sql`.

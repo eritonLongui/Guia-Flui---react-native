@@ -1,3 +1,4 @@
+import { AssistenteVozOverlay } from '@/components/AssistenteVozOverlay';
 import { ExploreResultsSheet } from '@/components/ExploreResultsSheet';
 import { FiltrosSheet } from '@/components/FiltrosSheet';
 import { Input } from '@/components/Input';
@@ -5,13 +6,17 @@ import { MapStationPopup } from '@/components/MapStationPopup';
 import { MapaExplorar, type MapaExplorarHandle } from '@/components/MapaExplorar';
 import { ScreenBottomFade } from '@/components/ScreenBottomFade';
 import { colors, layout, spacing } from '@/constants/theme';
+import { useAssistenteVoz } from '@/hooks/useAssistenteVoz';
 import { HIT_SLOP_PADRAO } from '@/lib/a11y';
+import type { AcaoAssistente } from '@/lib/assistenteVoz';
+import { flags } from '@/lib/flags';
 import { registrarBusca } from '@/lib/historicoLocal';
 import { useExplorarQuery } from '@/providers/ExplorarQueryProvider';
 import { useLocalizacao } from '@/providers/LocalizacaoProvider';
+import { useVeiculoAtivo } from '@/providers/VeiculoAtivoProvider';
 import type { Eletroposto } from '@/types';
 import { router } from 'expo-router';
-import { Locate, SlidersHorizontal } from 'lucide-react-native';
+import { Locate, Mic, SlidersHorizontal } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Keyboard,
@@ -28,6 +33,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 export default function ExplorarScreen() {
   const insets = useSafeAreaInsets();
   const { localizacao, isManual } = useLocalizacao();
+  const { veiculo } = useVeiculoAtivo();
   const { busca, setBusca, filtros, setFiltros, filtrados, filtrosAtivos } = useExplorarQuery();
 
   const buscaRef = useRef<TextInput>(null);
@@ -65,6 +71,33 @@ export default function ExplorarScreen() {
     registrarBusca(busca);
     router.push(`/eletroposto/${ep.id}`);
   };
+
+  const executarAcoesAssistente = useCallback((acoes: AcaoAssistente[]) => {
+    const rota = acoes.find((acao) => acao.tipo === 'abrir_rota');
+    const detalhe = acoes.find((acao) => acao.tipo === 'abrir_detalhe');
+    const destaque = acoes.find((acao) => acao.tipo === 'destacar_ponto');
+
+    if (rota) {
+      router.push(`/rota/${rota.id}`);
+      return;
+    }
+    if (detalhe) {
+      router.push(`/eletroposto/${detalhe.id}`);
+      return;
+    }
+    if (destaque) {
+      setResultadosAbertos(false);
+      setSelecionado(destaque.id);
+    }
+  }, []);
+
+  const assistente = useAssistenteVoz({
+    eletropostos: filtrados,
+    veiculo,
+    onAcoes: executarAcoesAssistente,
+  });
+
+  const mostrarAssistente = flags.assistenteVoz && Platform.OS !== 'web';
 
   const centralizarOrigem = () => {
     if (selecionado) {
@@ -143,7 +176,7 @@ export default function ExplorarScreen() {
         />
       )}
 
-      {origemForaDaVisao && !resultadosAbertos ? (
+      {origemForaDaVisao && !resultadosAbertos && !assistente.aberto ? (
         <Animated.View
           entering={FadeIn.duration(180)}
           exiting={FadeOut.duration(140)}
@@ -214,6 +247,29 @@ export default function ExplorarScreen() {
             </View>
           ) : null}
         </Pressable>
+        {mostrarAssistente ? (
+          <Pressable
+            style={[
+              styles.filterButton,
+              (assistente.aberto || assistente.estado === 'gravando') && styles.micButtonActive,
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel={assistente.aberto ? 'Assistente de voz aberto' : 'Falar com o Guia'}
+            accessibilityHint="Abre o assistente de voz sobre eletropostos próximos"
+            hitSlop={HIT_SLOP_PADRAO}
+            onPress={() => {
+              fecharResultados();
+              void assistente.tocarMicrofone();
+            }}>
+            <Mic
+              aria-hidden={true}
+              size={20}
+              color={
+                assistente.estado === 'gravando' ? colors.backgroundEnd : colors.textPrimary
+              }
+            />
+          </Pressable>
+        ) : null}
       </View>
 
       <ExploreResultsSheet
@@ -235,6 +291,21 @@ export default function ExplorarScreen() {
         onClose={() => setFiltrosAbertos(false)}
         onApply={setFiltros}
       />
+
+      {mostrarAssistente ? (
+        <AssistenteVozOverlay
+          visible={assistente.aberto}
+          estado={assistente.estado}
+          transcricao={assistente.transcricao}
+          resposta={assistente.resposta}
+          erro={assistente.erro}
+          onClose={assistente.fechar}
+          onToggleEscuta={() => {
+            void assistente.tocarMicrofone();
+          }}
+          onEnviarTexto={assistente.enviarTexto}
+        />
+      ) : null}
     </View>
   );
 }
@@ -304,6 +375,10 @@ const styles = StyleSheet.create({
     fontFamily: 'Poppins_500Medium',
     fontSize: 13,
     color: colors.textPrimary,
+  },
+  micButtonActive: {
+    borderColor: colors.accent,
+    backgroundColor: colors.accent,
   },
   badge: {
     position: 'absolute',

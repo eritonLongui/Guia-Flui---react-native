@@ -66,6 +66,8 @@ EXPO_PUBLIC_REQUIRE_EMAIL_CONFIRMATION=false
 
 `EXPO_PUBLIC_REQUIRE_EMAIL_CONFIRMATION` é uma **feature flag** (padrão `false`): o cadastro entra na hora. Isso só funciona se no Supabase, Authentication → Providers → Email, **Confirm email** estiver desligado. Para exigir o link de novo, ligue a flag `true` **e** o Confirm email no dashboard.
 
+O assistente de voz no mapa grava o áudio com `expo-audio` e usa uma Edge Function (`assistente-voz`) que transcreve e responde, com `OPENAI_API_KEY` só no Supabase (`npx supabase secrets set` + `npx supabase functions deploy assistente-voz`). Não coloque essa chave no `.env` do app. Precisa de build nativo (não Expo Go), mas funciona no Simulator do iOS.
+
 Quem já foi convidado no Expo (`@marcomendessv/guia-flui`) puxa as mesmas chaves do APK:
 
 ```bash

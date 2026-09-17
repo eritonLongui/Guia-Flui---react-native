@@ -3,21 +3,22 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center gap-2 rounded-xl text-sm font-medium transition-colors disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60',
+  'inline-flex items-center justify-center gap-2 rounded-[12px] font-bold uppercase tracking-wide transition-opacity disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-border',
   {
     variants: {
       variant: {
-        default: 'bg-accent text-black hover:bg-accent/90',
-        secondary: 'bg-elevated text-foreground border border-border hover:bg-surface-start',
-        ghost: 'text-secondary hover:bg-elevated hover:text-foreground',
-        danger: 'bg-danger text-black hover:bg-danger/90',
-        outline: 'border border-border bg-transparent hover:bg-elevated',
+        default: 'bg-white text-background hover:opacity-90',
+        secondary: 'bg-elevated text-foreground hover:opacity-90',
+        ghost: 'bg-transparent text-foreground hover:bg-elevated',
+        danger: 'bg-danger text-background hover:opacity-90',
+        outline: 'border border-border bg-transparent text-foreground hover:bg-elevated',
       },
       size: {
-        default: 'h-10 px-4',
-        sm: 'h-8 px-3 text-xs',
-        lg: 'h-12 px-5',
-        icon: 'size-9',
+        default: 'h-14 px-6 text-base',
+        sm: 'h-10 px-4 text-xs',
+        lg: 'h-14 px-6 text-base',
+        icon: 'size-12 p-0',
+        toolbar: 'size-[52px] rounded-[16px] p-0',
       },
     },
     defaultVariants: {
@@ -26,6 +27,8 @@ const buttonVariants = cva(
     },
   },
 );
+
+export { buttonVariants };
 
 export function Button({
   className,

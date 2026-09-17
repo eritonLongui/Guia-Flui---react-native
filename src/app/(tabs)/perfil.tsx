@@ -13,7 +13,7 @@ import { usuarioRepository } from '@/repositories';
 import type { Usuario } from '@/types';
 import { Image } from 'expo-image';
 import { router, useFocusEffect } from 'expo-router';
-import { Info, LogOut, Settings, Shield, UserRound } from 'lucide-react-native';
+import { Eye, Info, LogOut, Settings, Shield, Star, UserRound } from 'lucide-react-native';
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
@@ -126,6 +126,16 @@ export default function PerfilScreen() {
                   icon={<UserRound size={20} color={colors.textSecondary} />}
                   label="Editar perfil"
                   onPress={() => router.push('/perfil/editar')}
+                />
+                <SettingsRow
+                  icon={<Star size={20} color={colors.textSecondary} />}
+                  label="Minhas avaliações"
+                  onPress={() => router.push('/perfil/avaliacoes')}
+                />
+                <SettingsRow
+                  icon={<Eye size={20} color={colors.textSecondary} />}
+                  label="Histórico de visualização"
+                  onPress={() => router.push('/perfil/recentes')}
                 />
                 <SettingsRow
                   icon={<Settings size={20} color={colors.textSecondary} />}

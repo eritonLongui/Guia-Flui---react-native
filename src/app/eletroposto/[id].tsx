@@ -16,6 +16,7 @@ import { criarRotuloCompatibilidade, HIT_SLOP_PADRAO } from '@/lib/a11y';
 import { formatarResumoNotas, parseAvaliacaoComentario } from '@/lib/avaliacaoFormato';
 import { obterExplicacaoCompatibilidade } from '@/lib/compatibilidade';
 import { formatarDistancia } from '@/lib/formatadores';
+import { registrarPontoAberto } from '@/lib/historicoLocal';
 import { formatarHorarioMenorMovimento } from '@/lib/horarioEstacao';
 import { useAuth } from '@/providers/AuthProvider';
 import { useFavoritos } from '@/providers/FavoritosProvider';
@@ -132,6 +133,7 @@ export default function EletropostoDetalheScreen() {
         usuario ? avaliacaoRepository.obterDoUsuario(id, usuario.id) : Promise.resolve(null),
       ]);
       setEletroposto(ep);
+      if (ep) registrarPontoAberto(ep.id);
       setAvaliacoes(av.filter((item) => item.usuarioId !== usuario?.id));
       setMinhaAvaliacao(minha);
       setFavorito(ehFavorito(id));

@@ -1,20 +1,30 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { Star } from 'lucide-react';
 import { requireAdmin } from '@/lib/auth';
-import { formatDateTime, formatNumber } from '@/lib/format';
-import type { Profile, Review, Vehicle } from '@/lib/types';
+import { formatDateTime } from '@/lib/format';
+import { textoAvaliacao } from '@/lib/reviewComment';
+import { isBanned } from '@/lib/userAuth';
+import type { Profile, Review, Station } from '@/lib/types';
+import { UserActions } from '@/components/user-actions';
+import { PageHeader } from '@/components/page-header';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
+type UserAuth = {
+  user_id: string;
+  last_sign_in_at: string | null;
+  banned_until: string | null;
+};
 
 export default async function UserDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const { supabase } = await requireAdmin();
+  const { supabase, user: admin } = await requireAdmin();
 
-  const [{ data: profile }, { data: vehicles }, { data: reviews }, favorites] = await Promise.all([
+  const [{ data: profile }, { data: reviews }, { data: stations }, authResult] = await Promise.all([
     supabase.from('profiles').select('*').eq('id', id).maybeSingle(),
-    supabase.from('vehicles').select('*').eq('user_id', id),
     supabase.from('reviews').select('*').eq('user_id', id).order('criado_em', { ascending: false }),
-    supabase.from('favorites').select('*', { count: 'exact', head: true }).eq('user_id', id),
+    supabase.from('stations').select('id, nome'),
+    supabase.rpc('admin_users_auth'),
   ]);
 
   if (!profile) {
@@ -22,73 +32,69 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
   }
 
   const user = profile as Profile;
-  const vehicleList = (vehicles ?? []) as Vehicle[];
   const reviewList = (reviews ?? []) as Review[];
+  const stationNames = new Map(((stations ?? []) as Pick<Station, 'id' | 'nome'>[]).map((item) => [item.id, item.nome]));
+  const auth = ((authResult.data ?? []) as UserAuth[]).find((row) => row.user_id === id);
+  const blocked = isBanned(auth?.banned_until);
+  const isSelf = admin.id === user.id;
 
   return (
     <div className="grid gap-6">
-      <div>
-        <Link href="/usuarios" className="text-sm text-accent hover:underline">
-          ← Usuários
-        </Link>
-        <h1 className="font-heading mt-2 text-2xl font-semibold">{user.nome}</h1>
-        <p className="text-sm text-secondary">{user.email}</p>
-        <div className="mt-2 flex flex-wrap gap-2">
-          <Badge variant={user.role === 'admin' ? 'success' : 'default'}>{user.role}</Badge>
-          <Badge>Reputação {formatNumber(Number(user.reputacao), 1)}</Badge>
-          <Badge>Desde {formatDateTime(user.criado_em)}</Badge>
-          <Badge>{favorites.count ?? 0} favoritos</Badge>
-        </div>
+      <PageHeader
+        title={user.nome}
+        plain
+        backHref="/usuarios"
+        backLabel="Usuários"
+        description={user.email}
+        action={
+          isSelf ? undefined : (
+            <UserActions id={user.id} nome={user.nome} role={user.role} blocked={blocked} />
+          )
+        }
+      />
+
+      <div className="flex flex-wrap items-center gap-2">
+        <Badge variant={user.role === 'admin' ? 'success' : 'default'}>{user.role}</Badge>
+        {blocked ? <Badge variant="danger">Bloqueado</Badge> : null}
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Veículos</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-3">
-          {vehicleList.length === 0 ? (
-            <p className="text-sm text-muted">Nenhum veículo cadastrado.</p>
-          ) : (
-            vehicleList.map((vehicle) => (
-              <div key={vehicle.id} className="rounded-xl border border-border bg-elevated px-4 py-3">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="font-medium">
-                    {vehicle.marca} {vehicle.modelo} {vehicle.ano}
-                  </p>
-                  {vehicle.ativo ? <Badge variant="success">Ativo</Badge> : <Badge>Inativo</Badge>}
-                </div>
-                <p className="mt-1 text-sm text-secondary">
-                  {vehicle.autonomia_km} km · {vehicle.capacidade_bateria} kWh · {vehicle.potencia_maxima_carregamento} kW
-                </p>
-                <p className="mt-1 text-xs text-muted">{vehicle.tipos_conector.join(', ') || 'Sem conectores'}</p>
-              </div>
-            ))
-          )}
-        </CardContent>
-      </Card>
+      <dl className="surface-card grid gap-4 p-5 sm:grid-cols-2">
+        <div>
+          <dt className="font-title text-[12px] text-muted">Criado em</dt>
+          <dd className="mt-1 text-sm">{formatDateTime(user.criado_em)}</dd>
+        </div>
+        <div>
+          <dt className="font-title text-[12px] text-muted">Último login</dt>
+          <dd className="mt-1 text-sm">{auth?.last_sign_in_at ? formatDateTime(auth.last_sign_in_at) : 'Nunca'}</dd>
+        </div>
+      </dl>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Avaliações deste usuário</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-3">
-          {reviewList.length === 0 ? (
-            <p className="text-sm text-muted">Nenhuma avaliação.</p>
-          ) : (
-            reviewList.map((review) => (
-              <div key={review.id} className="rounded-xl border border-border bg-elevated px-4 py-3">
-                <p className="text-sm font-medium">
-                  {review.nota}★ · {formatDateTime(review.criado_em)}
+      <section>
+        <h2 className="font-title mb-4 text-base">Avaliações</h2>
+        {reviewList.length === 0 ? (
+          <p className="text-sm text-muted">Nenhuma avaliação ainda.</p>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {reviewList.map((review) => (
+              <article key={review.id} className="surface-card flex h-full flex-col p-5">
+                <p className="flex items-center gap-1 text-sm text-warning">
+                  <Star aria-hidden={true} className="size-3.5 fill-current" />
+                  {review.nota}
                 </p>
-                <p className="text-sm text-secondary">{review.comentario || 'Sem comentário'}</p>
-                <Link href={`/eletropostos/${review.station_id}`} className="text-xs text-accent hover:underline">
-                  Ver eletroposto
-                </Link>
-              </div>
-            ))
-          )}
-        </CardContent>
-      </Card>
+                <p className="mt-3 line-clamp-4 flex-1 text-sm leading-6 text-secondary">
+                  {textoAvaliacao(review.comentario)}
+                </p>
+                <div className="mt-4 flex items-center justify-between gap-3 border-t border-border pt-3">
+                  <Link href={`/eletropostos/${review.station_id}`} className="truncate text-xs text-muted hover:text-accent">
+                    {stationNames.get(review.station_id) ?? review.station_id}
+                  </Link>
+                  <p className="shrink-0 text-xs text-muted">{formatDateTime(review.criado_em)}</p>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   );
 }

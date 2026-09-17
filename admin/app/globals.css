@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import "leaflet/dist/leaflet.css";
 
 :root {
   --background: #131313;
@@ -10,12 +9,19 @@
   --border: #4a4a4a;
   --accent: #31fe50;
   --accent-dark: #234a29;
+  --accent-border: rgba(49, 254, 80, 0.45);
   --danger: #ff6b6b;
   --warning: #ffb800;
   --info: #5ac8fa;
   --foreground: #ffffff;
-  --muted: #8a8a8a;
+  --muted: #909090;
   --secondary: #c7c7c7;
+  --chip-bg: rgba(255, 255, 255, 0.1);
+  --chip-text: #f0f0f0;
+  --chip-border: rgba(255, 255, 255, 0.16);
+  --radius-card: 16px;
+  --radius-input: 16px;
+  --radius-button: 12px;
 }
 
 @theme inline {
@@ -27,57 +33,75 @@
   --color-border: var(--border);
   --color-accent: var(--accent);
   --color-accent-dark: var(--accent-dark);
+  --color-accent-border: var(--accent-border);
   --color-danger: var(--danger);
   --color-warning: var(--warning);
   --color-info: var(--info);
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
   --color-secondary: var(--secondary);
+  --color-chip-bg: var(--chip-bg);
+  --color-chip-text: var(--chip-text);
   --font-sans: var(--font-poppins);
-  --font-heading: var(--font-lexend);
+  --font-heading: var(--font-poppins);
+  --font-display: var(--font-lexend);
+  --radius-card: 16px;
+  --radius-input: 16px;
+  --radius-button: 12px;
 }
 
 html,
 body {
-  min-height: 100%;
-  background: var(--background);
+  height: 100%;
   color: var(--foreground);
+  color-scheme: dark;
+}
+
+html {
+  background: var(--background);
 }
 
 body {
   font-family: var(--font-poppins), system-ui, sans-serif;
+  background: linear-gradient(180deg, var(--background-start) 0%, var(--background) 100%);
+  background-attachment: fixed;
 }
 
 h1,
 h2,
-h3,
-.font-heading {
+h3 {
+  font-family: var(--font-poppins), system-ui, sans-serif;
+}
+
+.font-title {
+  font-family: var(--font-poppins), system-ui, sans-serif;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.font-display {
   font-family: var(--font-lexend), var(--font-poppins), system-ui, sans-serif;
 }
 
-.leaflet-container {
-  background: #1a1a1a;
-  font-family: inherit;
+.surface-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: linear-gradient(180deg, var(--surface-start) 0%, var(--surface) 100%);
 }
 
-.leaflet-popup-content-wrapper,
-.leaflet-popup-tip {
-  background: #1e1e1f;
-  color: #fff;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+.control {
+  height: 52px;
+  width: 100%;
+  border-radius: var(--radius-input);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  padding-inline: 16px;
+  font-size: 16px;
+  color: var(--foreground);
 }
 
-.leaflet-popup-content {
-  margin: 12px 14px;
-}
-
-.leaflet-control-zoom a {
-  background: #252526 !important;
-  color: #fff !important;
-  border-color: #4a4a4a !important;
-}
-
-.leaflet-control-attribution {
-  background: rgba(19, 19, 19, 0.8) !important;
-  color: #8a8a8a !important;
+.control:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--accent-border);
 }

@@ -1,9 +1,8 @@
 import { BackButton } from '@/components/BackButton';
 import { Button } from '@/components/Button';
 import { GradientBackground, GradientFill } from '@/components/GradientFill';
-import { UserLocationPulse, USER_LOCATION_MARKER_ANCHOR } from '@/components/UserLocationPulse';
+import { RotaMapa, type RotaMapaHandle } from '@/components/RotaMapa';
 import { APP_NAME } from '@/constants/app';
-import { mapGrayscaleStyle } from '@/constants/mapGrayscaleStyle';
 import { colors, layout, spacing } from '@/constants/theme';
 import { calcularRotaDirigindo, type RotaCalculada } from '@/lib/directions';
 import { obterLocalizacaoUsuario } from '@/lib/localizacao';
@@ -21,13 +20,12 @@ import {
   Text,
   View,
 } from 'react-native';
-import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function RotaScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
-  const mapRef = useRef<MapView>(null);
+  const mapRef = useRef<RotaMapaHandle>(null);
   const [eletroposto, setEletroposto] = useState<Eletroposto | null>(null);
   const [rota, setRota] = useState<RotaCalculada | null>(null);
   const [carregando, setCarregando] = useState(true);
@@ -62,10 +60,7 @@ export default function RotaScreen() {
         setRota(calculada);
 
         requestAnimationFrame(() => {
-          mapRef.current?.fitToCoordinates(calculada.coordenadas, {
-            edgePadding: { top: 80, right: 48, bottom: 220, left: 48 },
-            animated: true,
-          });
+          mapRef.current?.enquadrar(calculada.coordenadas);
         });
       } catch (error) {
         if (!mounted) return;
@@ -118,36 +113,14 @@ export default function RotaScreen() {
         </View>
       ) : (
         <>
-          <MapView
+          <RotaMapa
             ref={mapRef}
-            style={StyleSheet.absoluteFill}
-            provider={PROVIDER_GOOGLE}
-            customMapStyle={mapGrayscaleStyle}
-            showsUserLocation={false}
-            showsMyLocationButton={false}
-            showsCompass={false}
-            toolbarEnabled={false}>
-            <Polyline
-              coordinates={rota.coordenadas}
-              strokeColor={colors.accent}
-              strokeWidth={5}
-              lineCap="round"
-              lineJoin="round"
-            />
-            <Marker
-              coordinate={origemCoord}
-              anchor={USER_LOCATION_MARKER_ANCHOR}
-              tracksViewChanges
-              zIndex={2}>
-              <UserLocationPulse />
-            </Marker>
-            <Marker
-              coordinate={destinoCoord}
-              title={eletroposto.nome}
-              description={eletroposto.endereco}
-              pinColor={colors.accent}
-            />
-          </MapView>
+            origem={origemCoord}
+            destino={destinoCoord}
+            destinoTitulo={eletroposto.nome}
+            destinoDescricao={eletroposto.endereco}
+            coordenadas={rota.coordenadas}
+          />
 
           <View style={[styles.topBar, { paddingTop: insets.top + 8 }]}>
             <BackButton />

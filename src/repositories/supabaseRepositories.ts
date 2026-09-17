@@ -227,6 +227,17 @@ export class SupabaseAvaliacaoRepository implements AvaliacaoRepository {
     return rows.map(mapReview);
   }
 
+  async listarPorUsuario(usuarioId: string, limite = 50): Promise<Avaliacao[]> {
+    const { data, error } = await supabase
+      .from('reviews')
+      .select('*')
+      .eq('user_id', usuarioId)
+      .order('criado_em', { ascending: false })
+      .limit(limite);
+    const rows = assertOk<ReviewRow[]>(error, data, 'Não foi possível carregar avaliações');
+    return rows.map(mapReview);
+  }
+
   async obterDoUsuario(eletropostoId: string, usuarioId: string): Promise<Avaliacao | null> {
     const { data, error } = await supabase
       .from('reviews')

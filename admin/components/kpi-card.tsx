@@ -15,10 +15,10 @@ export function KpiCard({
   return (
     <Card>
       <CardContent className="py-5">
-        <p className="text-xs tracking-wide text-muted uppercase">{label}</p>
+        <p className="font-title text-[12px] text-muted">{label}</p>
         <p
           className={cn(
-            'font-heading mt-2 text-2xl font-semibold',
+            'mt-2 text-2xl font-bold tracking-wide',
             tone === 'success' && 'text-accent',
             tone === 'warning' && 'text-warning',
             tone === 'danger' && 'text-danger',

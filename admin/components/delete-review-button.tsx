@@ -1,7 +1,7 @@
 'use client';
 
+import { Trash2 } from 'lucide-react';
 import { deleteReview } from '@/app/actions/reviews';
-import { Button } from '@/components/ui/button';
 
 export function DeleteReviewButton({ id, nome }: { id: string; nome: string }) {
   return (
@@ -12,9 +12,14 @@ export function DeleteReviewButton({ id, nome }: { id: string; nome: string }) {
         await deleteReview(id);
       }}
     >
-      <Button type="submit" variant="danger" size="sm">
-        Remover
-      </Button>
+      <button
+        type="submit"
+        aria-label={`Remover avaliação de ${nome}`}
+        title="Remover"
+        className="flex size-9 items-center justify-center rounded-xl text-muted hover:bg-elevated hover:text-danger"
+      >
+        <Trash2 className="size-4" />
+      </button>
     </form>
   );
 }

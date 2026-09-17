@@ -33,3 +33,38 @@ export function obterSaudacao(): string {
   if (hora < 18) return 'Boa tarde';
   return 'Boa noite';
 }
+
+const MESES_CURTOS = [
+  'jan',
+  'fev',
+  'mar',
+  'abr',
+  'mai',
+  'jun',
+  'jul',
+  'ago',
+  'set',
+  'out',
+  'nov',
+  'dez',
+] as const;
+
+export function formatarDataCurta(iso: string): string {
+  const data = new Date(iso);
+  if (Number.isNaN(data.getTime())) return '';
+
+  const agora = new Date();
+  const inicioHoje = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate());
+  const inicioData = new Date(data.getFullYear(), data.getMonth(), data.getDate());
+  const diffDias = Math.round((inicioHoje.getTime() - inicioData.getTime()) / 86_400_000);
+
+  if (diffDias === 0) return 'Hoje';
+  if (diffDias === 1) return 'Ontem';
+
+  const dia = data.getDate();
+  const mes = MESES_CURTOS[data.getMonth()];
+  if (data.getFullYear() === agora.getFullYear()) {
+    return `${dia} ${mes}`;
+  }
+  return `${dia} ${mes} ${data.getFullYear()}`;
+}

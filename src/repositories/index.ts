@@ -51,6 +51,7 @@ export const veiculoRepository: VeiculoRepository = {
 
 export const avaliacaoRepository: AvaliacaoRepository = {
   listarPorEletroposto: (...args) => avaliacao().listarPorEletroposto(...args),
+  listarPorUsuario: (...args) => avaliacao().listarPorUsuario(...args),
   obterDoUsuario: (...args) => avaliacao().obterDoUsuario(...args),
   criar: (...args) => avaliacao().criar(...args),
   atualizar: (...args) => avaliacao().atualizar(...args),

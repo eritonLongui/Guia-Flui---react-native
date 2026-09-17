@@ -44,6 +44,5 @@ Não coloque a `service_role` key neste projeto. O painel usa a anon key e as po
 
 - Visão geral (KPIs e gráficos)
 - CRUD de eletropostos e disponibilidade (aberto agora, carregadores)
-- Mapa (Leaflet)
 - Moderação de avaliações
 - Listagem de usuários e veículos

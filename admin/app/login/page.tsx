@@ -30,11 +30,21 @@ export default async function LoginPage({
   }
 
   return (
-    <main className="flex min-h-full items-center justify-center px-4 py-12">
-      <div className="w-full max-w-md rounded-3xl border border-border bg-surface p-8 shadow-2xl">
-        <p className="text-xs font-medium tracking-[0.2em] text-accent uppercase">Guia Flui</p>
-        <h1 className="font-heading mt-2 text-2xl font-semibold">Painel admin</h1>
-        <p className="mt-2 text-sm text-secondary">Entre com uma conta promovida a administrador no Supabase.</p>
+    <main className="flex min-h-full items-center justify-center px-6 py-12">
+      <div className="w-full max-w-md">
+        <div className="flex flex-col items-center text-center">
+          <img
+            src="/logo-guia-flui.png"
+            alt="Guia Flui"
+            width={222}
+            height={60}
+            className="h-[60px] w-auto object-contain"
+          />
+          <h1 className="font-title mt-6 text-2xl">Bem-vindo de volta</h1>
+          <p className="mt-3 text-base text-secondary">
+            Entre com uma conta promovida a administrador no Supabase.
+          </p>
+        </div>
         <div className="mt-8">
           <LoginForm configured={isSupabaseConfigured()} forbidden={forbidden} />
         </div>

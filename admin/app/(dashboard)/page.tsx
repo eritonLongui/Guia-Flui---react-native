@@ -1,106 +1,119 @@
 import Link from 'next/link';
+import { ChevronRight } from 'lucide-react';
 import { requireAdmin } from '@/lib/auth';
-import { formatDateTime, formatNumber, labelSeguranca } from '@/lib/format';
+import { countByLabel, countByWeek, countLastDays, uniqueIdsLastDays, usersByWeek } from '@/lib/analytics';
+import { formatNumber } from '@/lib/format';
 import type { Review, Station } from '@/lib/types';
 import { KpiCard } from '@/components/kpi-card';
 import { OverviewCharts } from '@/components/overview-charts';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { PageHeader } from '@/components/page-header';
+import { IconLink } from '@/components/icon-link';
+
+type AuthActivity = {
+  user_id: string;
+  occurred_at: string;
+};
 
 export default async function OverviewPage() {
   const { supabase } = await requireAdmin();
 
-  const [{ data: stations }, { data: profiles }, { data: reviews }, favorites] = await Promise.all([
-    supabase.from('stations').select('*'),
-    supabase.from('profiles').select('id, criado_em, role'),
-    supabase.from('reviews').select('*').order('criado_em', { ascending: false }),
-    supabase.from('favorites').select('*', { count: 'exact', head: true }),
-  ]);
+  const [{ data: stations }, { data: profiles }, { data: reviews }, { data: vehicles }, activityResult] =
+    await Promise.all([
+      supabase.from('stations').select('*'),
+      supabase.from('profiles').select('id, criado_em, role'),
+      supabase.from('reviews').select('*').order('criado_em', { ascending: false }),
+      supabase.from('vehicles').select('user_id'),
+      supabase.rpc('admin_user_activity'),
+    ]);
 
   const stationList = (stations ?? []) as Station[];
   const reviewList = (reviews ?? []) as Review[];
-  const stationNames = new Map(stationList.map((station) => [station.id, station.nome]));
-
-  const chargersFree = stationList.reduce((sum, station) => sum + station.carregadores_disponiveis, 0);
-  const chargersTotal = stationList.reduce((sum, station) => sum + station.carregadores_total, 0);
-  const closed = stationList.filter((station) => !station.aberto_agora).length;
-  const attention = stationList.filter((station) => station.nivel_seguranca === 'atencao').length;
-  const avgRating =
-    reviewList.length > 0 ? reviewList.reduce((sum, review) => sum + review.nota, 0) / reviewList.length : 0;
-
-  const notes = [1, 2, 3, 4, 5].map((nota) => ({
-    nota: `${nota}★`,
-    quantidade: reviewList.filter((review) => review.nota === nota).length,
+  const profileDates = (profiles ?? []).map((profile) => profile.criado_em);
+  const usersWithVehicle = new Set((vehicles ?? []).map((vehicle) => vehicle.user_id)).size;
+  const activity = ((activityResult.data ?? []) as AuthActivity[]).map((row) => ({
+    id: row.user_id,
+    date: row.occurred_at,
   }));
 
-  const cityMap = new Map<string, number>();
-  for (const station of stationList) {
-    cityMap.set(station.cidade, (cityMap.get(station.cidade) ?? 0) + 1);
-  }
-  const cities = [...cityMap.entries()].map(([cidade, quantidade]) => ({ cidade, quantidade }));
+  const mau = uniqueIdsLastDays(activity, 30);
+  const wau = uniqueIdsLastDays(activity, 7);
 
-  const safetyMap = new Map<string, number>();
-  for (const station of stationList) {
-    const label = labelSeguranca(station.nivel_seguranca);
-    safetyMap.set(label, (safetyMap.get(label) ?? 0) + 1);
-  }
-  const safety = [...safetyMap.entries()].map(([nivel, quantidade]) => ({ nivel, quantidade }));
+  const ranked = [...stationList]
+    .filter((station) => station.quantidade_avaliacoes > 0)
+    .sort((a, b) => b.nota - a.nota || b.quantidade_avaliacoes - a.quantidade_avaliacoes)
+    .slice(0, 10);
 
   return (
     <div className="grid gap-6">
-      <div>
-        <h1 className="font-heading text-2xl font-semibold">Visão geral</h1>
-        <p className="mt-1 text-sm text-secondary">Números ao vivo do mesmo banco usado pelo app.</p>
-      </div>
+      <PageHeader title="Visão geral" description="Métricas de uso, cadastro e da rede." />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <KpiCard label="Eletropostos" value={formatNumber(stationList.length)} />
-        <KpiCard label="Usuários" value={formatNumber(profiles?.length ?? 0)} />
-        <KpiCard label="Avaliações" value={formatNumber(reviewList.length)} hint={`Nota média ${formatNumber(avgRating, 1)}`} />
         <KpiCard
-          label="Carregadores livres"
-          value={`${formatNumber(chargersFree)}/${formatNumber(chargersTotal)}`}
-          hint={`${formatNumber(favorites.count ?? 0)} favoritos`}
-        />
-        <KpiCard label="Fechadas agora" value={formatNumber(closed)} tone={closed ? 'warning' : 'success'} />
-        <KpiCard label="Segurança atenção" value={formatNumber(attention)} tone={attention ? 'danger' : 'success'} />
-        <KpiCard
-          label="Admins"
-          value={formatNumber(profiles?.filter((profile) => profile.role === 'admin').length ?? 0)}
+          label="Usuários"
+          value={formatNumber(profiles?.length ?? 0)}
+          hint={`${formatNumber(usersWithVehicle)} com veículo`}
         />
         <KpiCard
-          label="Sem avaliações"
-          value={formatNumber(stationList.filter((station) => station.quantidade_avaliacoes === 0).length)}
+          label="Ativos · 30 dias"
+          value={formatNumber(mau)}
+          hint="Pessoas que entraram no app nos últimos 30 dias"
+        />
+        <KpiCard
+          label="Ativos · 7 dias"
+          value={formatNumber(wau)}
+          hint="Pessoas que entraram no app nos últimos 7 dias"
+        />
+        <KpiCard
+          label="Cadastros · 30 dias"
+          value={formatNumber(countLastDays(profileDates, 30))}
+          hint="Contas novas neste período"
         />
       </div>
 
-      <OverviewCharts notes={notes} cities={cities} safety={safety} />
+      <OverviewCharts
+        users={usersByWeek(profileDates, activity)}
+        reviews={countByWeek(reviewList.map((review) => review.criado_em))}
+        cities={countByLabel(stationList.map((station) => station.cidade), 5)}
+      />
 
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Avaliações recentes</CardTitle>
-          <Link href="/avaliacoes" className="text-sm text-accent hover:underline">
-            Ver todas
-          </Link>
-        </CardHeader>
-        <CardContent className="grid gap-3">
-          {reviewList.slice(0, 8).length === 0 ? (
-            <p className="text-sm text-muted">Nenhuma avaliação ainda.</p>
-          ) : (
-            reviewList.slice(0, 8).map((review) => (
-              <div key={review.id} className="rounded-xl border border-border bg-elevated px-4 py-3">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="text-sm font-medium">
-                    {review.nome_usuario} · {review.nota}★
-                  </p>
-                  <p className="text-xs text-muted">{formatDateTime(review.criado_em)}</p>
-                </div>
-                <p className="mt-1 text-sm text-secondary">{review.comentario || 'Sem comentário'}</p>
-                <p className="mt-1 text-xs text-muted">{stationNames.get(review.station_id) ?? review.station_id}</p>
-              </div>
-            ))
-          )}
-        </CardContent>
-      </Card>
+      <section className="surface-card overflow-x-auto">
+        <div className="flex items-center justify-between border-b border-border px-5 py-4">
+          <h2 className="font-title text-base">Top 10 mais bem avaliados</h2>
+          <IconLink href="/eletropostos" label="Ver catálogo" className="size-10">
+            <ChevronRight className="size-4" />
+          </IconLink>
+        </div>
+        {ranked.length === 0 ? (
+          <p className="px-5 py-6 text-sm text-muted">Ainda não há notas suficientes.</p>
+        ) : (
+          <table className="min-w-full text-left text-sm">
+            <thead className="font-title text-[12px] text-muted">
+              <tr>
+                <th className="px-5 py-3">#</th>
+                <th className="px-5 py-3">Eletroposto</th>
+                <th className="px-5 py-3">Cidade</th>
+                <th className="px-5 py-3">Nota</th>
+                <th className="px-5 py-3">Avaliações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {ranked.map((station, index) => (
+                <tr key={station.id} className="border-t border-border">
+                  <td className="px-5 py-3 text-muted">{index + 1}</td>
+                  <td className="px-5 py-3">
+                    <Link href={`/eletropostos/${station.id}`} className="font-medium hover:text-accent">
+                      {station.nome}
+                    </Link>
+                  </td>
+                  <td className="px-5 py-3 text-secondary">{station.cidade}</td>
+                  <td className="px-5 py-3">{formatNumber(station.nota, 1)} ★</td>
+                  <td className="px-5 py-3 text-muted">{formatNumber(station.quantidade_avaliacoes)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </section>
     </div>
   );
 }

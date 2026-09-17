@@ -122,6 +122,13 @@ export class MockAvaliacaoRepository implements AvaliacaoRepository {
       .slice(0, limite);
   }
 
+  async listarPorUsuario(usuarioId: string, limite = 50): Promise<Avaliacao[]> {
+    return avaliacoesStore
+      .filter((a) => a.usuarioId === usuarioId)
+      .sort((a, b) => (a.criadoEm < b.criadoEm ? 1 : -1))
+      .slice(0, limite);
+  }
+
   async obterDoUsuario(eletropostoId: string, usuarioId: string): Promise<Avaliacao | null> {
     return (
       avaliacoesStore.find((a) => a.eletropostoId === eletropostoId && a.usuarioId === usuarioId) ??

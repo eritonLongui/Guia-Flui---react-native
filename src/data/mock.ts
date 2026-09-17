@@ -413,6 +413,24 @@ export const eletropostosMock: Eletroposto[] = [
 
 export const avaliacoesMock: Avaliacao[] = [
   {
+    id: 'av-user-1',
+    eletropostoId: 'ep-1',
+    usuarioId: 'user-1',
+    nomeUsuario: 'SaLLein Caasi',
+    nota: 5,
+    comentario: 'Carregamento rápido e local seguro.',
+    criadoEm: '2026-08-20T14:30:00Z',
+  },
+  {
+    id: 'av-user-2',
+    eletropostoId: 'ep-4',
+    usuarioId: 'user-1',
+    nomeUsuario: 'SaLLein Caasi',
+    nota: 4,
+    comentario: 'Bom ponto, um pouco cheio no fim de tarde.',
+    criadoEm: '2026-07-02T18:10:00Z',
+  },
+  {
     id: 'av-1',
     eletropostoId: 'ep-1',
     usuarioId: 'user-2',

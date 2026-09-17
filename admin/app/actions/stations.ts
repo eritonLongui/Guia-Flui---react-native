@@ -75,7 +75,6 @@ function validateStation(input: StationInput) {
   if (!input.endereco || !input.cidade || !input.estado) return 'Informe endereço, cidade e estado.';
   if (!input.horario_funcionamento || !input.horario_menor_movimento) return 'Informe os horários.';
   if (!input.descricao_seguranca) return 'Informe a descrição de segurança.';
-  if (!input.imagem_url) return 'Informe a URL da imagem.';
   if (input.carregadores_disponiveis > input.carregadores_total) {
     return 'Carregadores disponíveis não podem passar do total.';
   }
@@ -122,7 +121,6 @@ export async function createStation(_prev: ActionState, formData: FormData): Pro
 
   revalidatePath('/');
   revalidatePath('/eletropostos');
-  revalidatePath('/mapa');
   redirect(`/eletropostos/${input.id}`);
 }
 
@@ -169,7 +167,6 @@ export async function updateStation(id: string, _prev: ActionState, formData: Fo
   revalidatePath('/');
   revalidatePath('/eletropostos');
   revalidatePath(`/eletropostos/${id}`);
-  revalidatePath('/mapa');
   return { saved: true };
 }
 
@@ -181,42 +178,6 @@ export async function deleteStation(id: string) {
   }
   revalidatePath('/');
   revalidatePath('/eletropostos');
-  revalidatePath('/mapa');
   revalidatePath('/avaliacoes');
   redirect('/eletropostos');
-}
-
-export async function toggleStationOpen(id: string, aberto: boolean) {
-  const { supabase } = await requireAdmin();
-  const { error } = await supabase.from('stations').update({ aberto_agora: aberto }).eq('id', id);
-  if (error) {
-    throw new Error(error.message);
-  }
-  revalidatePath('/');
-  revalidatePath('/eletropostos');
-  revalidatePath(`/eletropostos/${id}`);
-  revalidatePath('/mapa');
-}
-
-export async function updateChargers(id: string, formData: FormData) {
-  const { supabase } = await requireAdmin();
-  const disponiveis = Number(formData.get('carregadores_disponiveis'));
-  const total = Number(formData.get('carregadores_total'));
-  if (!Number.isFinite(disponiveis) || !Number.isFinite(total) || disponiveis < 0 || total < 0) {
-    return;
-  }
-  const { error } = await supabase
-    .from('stations')
-    .update({
-      carregadores_disponiveis: Math.min(disponiveis, total),
-      carregadores_total: total,
-    })
-    .eq('id', id);
-  if (error) {
-    throw new Error(error.message);
-  }
-  revalidatePath('/');
-  revalidatePath('/eletropostos');
-  revalidatePath(`/eletropostos/${id}`);
-  revalidatePath('/mapa');
 }

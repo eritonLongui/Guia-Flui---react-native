@@ -8,10 +8,10 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   const { profile } = await requireAdmin();
 
   return (
-    <div className="flex min-h-full flex-col lg:flex-row">
+    <div className="flex h-svh min-h-0 flex-col overflow-hidden lg:flex-row">
       <Sidebar nome={profile.nome} email={profile.email} />
-      <div className="min-w-0 flex-1">
-        <div className="mx-auto w-full max-w-6xl px-4 py-6 lg:px-8 lg:py-8">{children}</div>
+      <div className="min-h-0 min-w-0 flex-1 overflow-y-auto">
+        <div className="mx-auto w-full max-w-6xl px-6 py-8 lg:px-8 lg:py-10">{children}</div>
       </div>
     </div>
   );

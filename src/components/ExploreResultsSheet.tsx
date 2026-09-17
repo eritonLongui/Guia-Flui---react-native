@@ -21,8 +21,6 @@ interface ExploreResultsSheetProps {
   eletropostos: Eletroposto[];
   onSelect: (eletroposto: Eletroposto) => void;
   onClose: () => void;
-  /** Cancela o fechamento agendado (toque na lista / handle). */
-  onKeepOpen?: () => void;
   /** Distância do topo da tela até o fim da barra de busca. */
   topOffset: number;
 }
@@ -47,7 +45,6 @@ export function ExploreResultsSheet({
   eletropostos,
   onSelect,
   onClose,
-  onKeepOpen,
   topOffset,
 }: ExploreResultsSheetProps) {
   const insets = useSafeAreaInsets();
@@ -69,17 +66,15 @@ export function ExploreResultsSheet({
   }, [translateY, visible]);
 
   const pan = Gesture.Pan()
-    .activeOffsetY(8)
-    .onBegin(() => {
-      if (onKeepOpen) runOnJS(onKeepOpen)();
-    })
+    .activeOffsetY(12)
+    .failOffsetX([-24, 24])
     .onUpdate((event) => {
       if (event.translationY > 0) {
         translateY.value = event.translationY;
       }
     })
     .onEnd((event) => {
-      if (event.translationY > 90 || event.velocityY > 800) {
+      if (event.translationY > 120 || event.velocityY > 1100) {
         runOnJS(onClose)();
         return;
       }
@@ -110,7 +105,7 @@ export function ExploreResultsSheet({
       style={[styles.wrap, { top: topOffset }, sheetStyle]}>
       <GradientFill variant="background" style={styles.sheet}>
         <GestureDetector gesture={pan}>
-          <View style={styles.handleArea} onTouchStart={onKeepOpen}>
+          <View style={styles.handleArea}>
             <View style={styles.handle} />
             <Title size="sm" style={styles.title}>
               {titulo}
@@ -125,9 +120,9 @@ export function ExploreResultsSheet({
           renderItem={renderItem}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
+          nestedScrollEnabled
+          overScrollMode="never"
           showsVerticalScrollIndicator={false}
-          onTouchStart={onKeepOpen}
-          onScrollBeginDrag={onKeepOpen}
           contentContainerStyle={{ paddingBottom: tabBarClearance + spacing.lg }}
           ListEmptyComponent={
             <Text style={styles.empty}>Nenhum eletroposto com esses filtros.</Text>

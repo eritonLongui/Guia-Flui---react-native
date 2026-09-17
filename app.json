@@ -9,7 +9,11 @@
     "userInterfaceStyle": "dark",
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.rota.app"
+      "bundleIdentifier": "com.rota.app",
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "O Guia Flui usa o microfone para o assistente de voz no mapa.",
+        "NSSpeechRecognitionUsageDescription": "O Guia Flui usa o reconhecimento de fala para conversar sobre eletropostos próximos."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -17,7 +21,8 @@
         "foregroundImage": "./assets/images/android-icon-foreground.png"
       },
       "package": "com.rota.app",
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "softwareKeyboardLayoutMode": "resize"
     },
     "web": {
       "output": "static"
@@ -30,6 +35,13 @@
         "expo-location",
         {
           "locationWhenInUsePermission": "O Guia Flui usa sua localização para mostrar eletropostos próximos no mapa."
+        }
+      ],
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "O Guia Flui usa o microfone para o assistente de voz no mapa.",
+          "speechRecognitionPermission": "O Guia Flui usa o reconhecimento de fala para conversar sobre eletropostos próximos."
         }
       ],
       [

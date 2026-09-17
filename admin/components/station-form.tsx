@@ -1,11 +1,13 @@
 'use client';
 
 import { useActionState, useState } from 'react';
+import { Plus, Trash2 } from 'lucide-react';
 import { createStation, updateStation, type ActionState } from '@/app/actions/stations';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import type { Conector, Station } from '@/lib/types';
 
@@ -21,14 +23,14 @@ export function StationForm({ station }: { station?: Station }) {
   return (
     <form action={formAction} className="grid gap-6">
       {state?.error ? (
-        <p className="rounded-xl border border-danger/40 bg-danger/10 px-3 py-2 text-sm text-danger">{state.error}</p>
+        <p className="rounded-[16px] border border-danger/40 bg-danger/10 px-3 py-2 text-sm text-danger">{state.error}</p>
       ) : null}
       {state?.saved ? (
-        <p className="rounded-xl border border-accent/40 bg-accent/10 px-3 py-2 text-sm text-accent">Alterações salvas.</p>
+        <p className="rounded-[16px] border border-accent/40 bg-accent/10 px-3 py-2 text-sm text-accent">Alterações salvas.</p>
       ) : null}
 
-      <section className="grid gap-4 rounded-2xl border border-border bg-surface p-5 md:grid-cols-2">
-        <h2 className="font-heading text-sm font-semibold md:col-span-2">Identidade</h2>
+      <section className="surface-card grid gap-4 p-5 md:grid-cols-2">
+        <h2 className="font-title text-sm md:col-span-2">Identidade</h2>
         {!station ? (
           <Field>
             <Label htmlFor="id">ID (opcional)</Label>
@@ -44,14 +46,11 @@ export function StationForm({ station }: { station?: Station }) {
           <Label htmlFor="nome">Nome</Label>
           <Input id="nome" name="nome" required defaultValue={station?.nome} />
         </Field>
-        <Field className="md:col-span-2">
-          <Label htmlFor="imagem_url">URL da imagem</Label>
-          <Input id="imagem_url" name="imagem_url" required defaultValue={station?.imagem_url} />
-        </Field>
+        <input type="hidden" name="imagem_url" value={station?.imagem_url ?? ''} />
       </section>
 
-      <section className="grid gap-4 rounded-2xl border border-border bg-surface p-5 md:grid-cols-2">
-        <h2 className="font-heading text-sm font-semibold md:col-span-2">Local</h2>
+      <section className="surface-card grid gap-4 p-5 md:grid-cols-2">
+        <h2 className="font-title text-sm md:col-span-2">Local</h2>
         <Field className="md:col-span-2">
           <Label htmlFor="endereco">Endereço</Label>
           <Input id="endereco" name="endereco" required defaultValue={station?.endereco} />
@@ -74,28 +73,11 @@ export function StationForm({ station }: { station?: Station }) {
         </Field>
       </section>
 
-      <section className="grid gap-4 rounded-2xl border border-border bg-surface p-5 md:grid-cols-2">
-        <h2 className="font-heading text-sm font-semibold md:col-span-2">Operação</h2>
-        <label className="flex items-center gap-2 text-sm">
-          <input type="checkbox" name="aberto_agora" defaultChecked={station?.aberto_agora ?? true} className="size-4 accent-accent" />
-          Aberto agora
-        </label>
-        <div className="grid grid-cols-2 gap-3">
-          <Field>
-            <Label htmlFor="carregadores_disponiveis">Carregadores livres</Label>
-            <Input
-              id="carregadores_disponiveis"
-              name="carregadores_disponiveis"
-              type="number"
-              min={0}
-              defaultValue={station?.carregadores_disponiveis ?? 1}
-            />
-          </Field>
-          <Field>
-            <Label htmlFor="carregadores_total">Carregadores total</Label>
-            <Input id="carregadores_total" name="carregadores_total" type="number" min={0} defaultValue={station?.carregadores_total ?? 2} />
-          </Field>
-        </div>
+      <section className="surface-card grid gap-4 p-5 md:grid-cols-2">
+        <h2 className="font-title text-sm md:col-span-2">Horários</h2>
+        <input type="hidden" name="aberto_agora" value={station?.aberto_agora === false ? 'false' : 'true'} />
+        <input type="hidden" name="carregadores_disponiveis" value={String(station?.carregadores_disponiveis ?? 0)} />
+        <input type="hidden" name="carregadores_total" value={String(station?.carregadores_total ?? 0)} />
         <Field>
           <Label htmlFor="horario_funcionamento">Horário de funcionamento</Label>
           <Input id="horario_funcionamento" name="horario_funcionamento" required defaultValue={station?.horario_funcionamento ?? '24 horas'} />
@@ -119,20 +101,19 @@ export function StationForm({ station }: { station?: Station }) {
         </Field>
       </section>
 
-      <section className="grid gap-4 rounded-2xl border border-border bg-surface p-5 md:grid-cols-2">
-        <h2 className="font-heading text-sm font-semibold md:col-span-2">Segurança e scores</h2>
+      <section className="surface-card grid gap-4 p-5 md:grid-cols-2">
+        <h2 className="font-title text-sm md:col-span-2">Segurança e scores</h2>
         <Field>
           <Label htmlFor="nivel_seguranca">Nível de segurança</Label>
-          <select
+          <Select
             id="nivel_seguranca"
             name="nivel_seguranca"
             defaultValue={station?.nivel_seguranca ?? 'moderado'}
-            className="h-10 rounded-xl border border-border bg-elevated px-3 text-sm"
           >
             <option value="seguro">Seguro</option>
             <option value="moderado">Moderado</option>
             <option value="atencao">Atenção</option>
-          </select>
+          </Select>
         </Field>
         <Field>
           <Label htmlFor="pontuacao_seguranca">Pontuação de segurança</Label>
@@ -150,16 +131,15 @@ export function StationForm({ station }: { station?: Station }) {
         </Field>
         <Field>
           <Label htmlFor="nivel_compatibilidade">Nível de compatibilidade (catálogo)</Label>
-          <select
+          <Select
             id="nivel_compatibilidade"
             name="nivel_compatibilidade"
             defaultValue={station?.nivel_compatibilidade ?? 'compativel'}
-            className="h-10 rounded-xl border border-border bg-elevated px-3 text-sm"
           >
             <option value="compativel">Compatível</option>
             <option value="parcial">Parcial</option>
             <option value="incompativel">Incompatível</option>
-          </select>
+          </Select>
         </Field>
         <div className="grid grid-cols-2 gap-3">
           <Field>
@@ -183,8 +163,8 @@ export function StationForm({ station }: { station?: Station }) {
         </div>
       </section>
 
-      <section className="grid gap-4 rounded-2xl border border-border bg-surface p-5">
-        <h2 className="font-heading text-sm font-semibold">Conveniências</h2>
+      <section className="surface-card grid gap-4 p-5">
+        <h2 className="font-title text-sm">Conveniências</h2>
         <div className="flex flex-wrap gap-4 text-sm">
           <label className="flex items-center gap-2">
             <input type="checkbox" name="tem_comida" defaultChecked={station?.tem_comida} className="size-4 accent-accent" />
@@ -201,22 +181,24 @@ export function StationForm({ station }: { station?: Station }) {
         </div>
       </section>
 
-      <section className="grid gap-4 rounded-2xl border border-border bg-surface p-5">
+      <section className="surface-card grid gap-4 p-5">
         <div className="flex items-center justify-between">
-          <h2 className="font-heading text-sm font-semibold">Conectores</h2>
+          <h2 className="font-title text-sm">Conectores</h2>
           <Button
             type="button"
             variant="secondary"
-            size="sm"
+            size="toolbar"
+            aria-label="Adicionar conector"
+            title="Adicionar conector"
             onClick={() => setConectores((current) => [...current, { tipo: 'CCS2', potenciaKw: 50, quantidade: 1 }])}
           >
-            Adicionar
+            <Plus className="size-4" />
           </Button>
         </div>
         <input type="hidden" name="conectores" value={JSON.stringify(conectores)} />
         <div className="grid gap-3">
           {conectores.map((conector, index) => (
-            <div key={`${conector.tipo}-${index}`} className="grid gap-2 rounded-xl border border-border bg-elevated p-3 md:grid-cols-4">
+            <div key={`${conector.tipo}-${index}`} className="grid gap-2 rounded-[16px] border border-border bg-elevated p-3 md:grid-cols-4">
               <Input
                 value={conector.tipo}
                 placeholder="Tipo"
@@ -249,9 +231,12 @@ export function StationForm({ station }: { station?: Station }) {
               <Button
                 type="button"
                 variant="ghost"
+                size="toolbar"
+                aria-label="Remover conector"
+                title="Remover conector"
                 onClick={() => setConectores((current) => current.filter((_, itemIndex) => itemIndex !== index))}
               >
-                Remover
+                <Trash2 className="size-4" />
               </Button>
             </div>
           ))}
@@ -259,8 +244,8 @@ export function StationForm({ station }: { station?: Station }) {
       </section>
 
       <div className="flex justify-end">
-        <Button type="submit" size="lg" disabled={pending}>
-          {pending ? 'Salvando…' : station ? 'Salvar alterações' : 'Criar eletroposto'}
+        <Button type="submit" disabled={pending}>
+          {pending ? 'Salvando...' : station ? 'Salvar alterações' : 'Criar eletroposto'}
         </Button>
       </div>
     </form>

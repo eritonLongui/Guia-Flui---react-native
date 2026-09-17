@@ -8,6 +8,9 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: adminDir,
   },
+  async redirects() {
+    return [{ source: '/mapa', destination: '/', permanent: false }];
+  },
 };
 
 export default nextConfig;

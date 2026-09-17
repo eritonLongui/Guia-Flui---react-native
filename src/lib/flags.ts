@@ -18,4 +18,6 @@ export const flags = {
    * `true`: o app espera o link de confirmação; ligue Confirm email no Supabase.
    */
   requireEmailConfirmation: envFlag('EXPO_PUBLIC_REQUIRE_EMAIL_CONFIRMATION', false),
+  /** Assistente de voz na aba Explorar. Padrão ligado. */
+  assistenteVoz: envFlag('EXPO_PUBLIC_ASSISTENTE_VOZ', true),
 };

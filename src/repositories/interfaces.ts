@@ -35,6 +35,7 @@ export interface AtualizarAvaliacaoInput {
 
 export interface AvaliacaoRepository {
   listarPorEletroposto(eletropostoId: string, limite?: number): Promise<Avaliacao[]>;
+  listarPorUsuario(usuarioId: string, limite?: number): Promise<Avaliacao[]>;
   obterDoUsuario(eletropostoId: string, usuarioId: string): Promise<Avaliacao | null>;
   criar(input: NovaAvaliacaoInput): Promise<Avaliacao>;
   atualizar(id: string, input: AtualizarAvaliacaoInput): Promise<Avaliacao>;

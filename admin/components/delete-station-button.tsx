@@ -1,7 +1,7 @@
 'use client';
 
+import { Trash2 } from 'lucide-react';
 import { deleteStation } from '@/app/actions/stations';
-import { Button } from '@/components/ui/button';
 
 export function DeleteStationButton({ id, nome }: { id: string; nome: string }) {
   return (
@@ -12,9 +12,14 @@ export function DeleteStationButton({ id, nome }: { id: string; nome: string }) 
         await deleteStation(id);
       }}
     >
-      <Button type="submit" variant="danger" size="sm">
-        Excluir
-      </Button>
+      <button
+        type="submit"
+        aria-label={`Excluir ${nome}`}
+        title="Excluir"
+        className="flex size-9 items-center justify-center rounded-xl text-muted hover:bg-elevated hover:text-danger"
+      >
+        <Trash2 className="size-4" />
+      </button>
     </form>
   );
 }

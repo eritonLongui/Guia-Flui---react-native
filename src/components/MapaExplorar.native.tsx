@@ -34,12 +34,14 @@ function origemVisivelNaRegiao(origem: Localizacao, region: Region): boolean {
 
 export type MapaExplorarHandle = {
   centralizarOrigem: () => void;
+  encaixarEstacoes: (eletropostos: Eletroposto[]) => void;
 };
 
 interface MapaExplorarProps {
   eletropostos: Eletroposto[];
   selecionado: string | null;
   origem?: Localizacao | null;
+  seguirOrigem?: boolean;
   onSelectMarker: (id: string) => void;
   onOpenDetalhe: (ep: Eletroposto) => void;
   onPressMap?: () => void;
@@ -52,6 +54,7 @@ export const MapaExplorar = forwardRef<MapaExplorarHandle, MapaExplorarProps>(
       eletropostos,
       selecionado,
       origem,
+      seguirOrigem = true,
       onSelectMarker,
       onPressMap,
       onOrigemForaDaVisao,
@@ -76,13 +79,37 @@ export const MapaExplorar = forwardRef<MapaExplorarHandle, MapaExplorarProps>(
       onForaRef.current?.(false);
     };
 
-    useImperativeHandle(ref, () => ({ centralizarOrigem }), [localizacao]);
+    const encaixarEstacoes = (pontos: Eletroposto[]) => {
+      if (pontos.length === 0) return;
+      if (pontos.length === 1) {
+        const ep = pontos[0];
+        mapRef.current?.animateToRegion(
+          {
+            latitude: ep.latitude,
+            longitude: ep.longitude,
+            latitudeDelta: 0.08,
+            longitudeDelta: 0.08,
+          },
+          450,
+        );
+        return;
+      }
+      mapRef.current?.fitToCoordinates(
+        pontos.map((ep) => ({ latitude: ep.latitude, longitude: ep.longitude })),
+        {
+          edgePadding: { top: 140, right: 56, bottom: 220, left: 56 },
+          animated: true,
+        },
+      );
+    };
+
+    useImperativeHandle(ref, () => ({ centralizarOrigem, encaixarEstacoes }), [localizacao]);
 
     useEffect(() => {
-      if (selecionado) return;
+      if (selecionado || !seguirOrigem) return;
       mapRef.current?.animateToRegion(regiaoDaLocalizacao(localizacao), 400);
       onForaRef.current?.(false);
-    }, [origemKey, selecionado, localizacao]);
+    }, [origemKey, selecionado, localizacao, seguirOrigem]);
 
     useEffect(() => {
       if (!selecionado) return;

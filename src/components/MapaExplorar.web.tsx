@@ -4,6 +4,7 @@ import { Text, View } from 'react-native';
 
 export type MapaExplorarHandle = {
   centralizarOrigem: () => void;
+  encaixarEstacoes: (eletropostos: Eletroposto[]) => void;
 };
 
 interface MapaExplorarProps {
@@ -18,7 +19,7 @@ interface MapaExplorarProps {
 
 export const MapaExplorar = forwardRef<MapaExplorarHandle, MapaExplorarProps>(
   function MapaExplorar({ eletropostos }, ref) {
-    useImperativeHandle(ref, () => ({ centralizarOrigem: () => {} }), []);
+    useImperativeHandle(ref, () => ({ centralizarOrigem: () => {}, encaixarEstacoes: () => {} }), []);
 
     return (
       <View className="flex-1 items-center justify-center bg-background">

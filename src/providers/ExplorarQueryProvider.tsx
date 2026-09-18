@@ -1,6 +1,7 @@
 import {
   aplicarFiltrosExplorar,
   contarFiltrosAtivos,
+  filtrarPorBusca,
   FILTROS_INICIAIS,
   type FiltrosExplorar,
 } from '@/features/explorar/filtros';
@@ -25,6 +26,7 @@ interface ExplorarQueryValue {
   setBusca: (busca: string) => void;
   filtros: FiltrosExplorar;
   setFiltros: (filtros: FiltrosExplorar) => void;
+  eletropostos: Eletroposto[];
   filtrados: Eletroposto[];
   filtrosAtivos: number;
 }
@@ -49,20 +51,13 @@ export function ExplorarQueryProvider({ children }: { children: ReactNode }) {
 
     const timer = setTimeout(async () => {
       try {
-        const dados = busca
-          ? await eletropostoRepository.buscar(busca)
-          : await eletropostoRepository.listar();
+        const dados = await eletropostoRepository.listar();
         if (!mounted) return;
         setEletropostos(dados);
-        if (busca.trim()) {
-          anunciarMensagem(
-            `${dados.length} ${dados.length === 1 ? 'resultado encontrado' : 'resultados encontrados'}`,
-          );
-        }
       } catch {
         if (!mounted) return;
         setEletropostos([]);
-        anunciarMensagem('Não foi possível buscar eletropostos');
+        anunciarMensagem('Não foi possível carregar eletropostos');
       }
     }, 150);
 
@@ -70,21 +65,26 @@ export function ExplorarQueryProvider({ children }: { children: ReactNode }) {
       mounted = false;
       clearTimeout(timer);
     };
-  }, [busca, isMockMode, origemKey]);
+  }, [isMockMode, origemKey]);
 
   const filtrados = useMemo(
-    () => aplicarFiltrosExplorar(eletropostos, filtros, veiculo),
-    [eletropostos, filtros, veiculo],
+    () => aplicarFiltrosExplorar(filtrarPorBusca(eletropostos, busca), filtros, veiculo),
+    [eletropostos, busca, filtros, veiculo],
   );
 
   const filtrosAnteriores = useRef(filtros);
+  const buscaAnterior = useRef(busca);
   useEffect(() => {
-    if (filtrosAnteriores.current === filtros) return;
+    const mudouFiltro = filtrosAnteriores.current !== filtros;
+    const mudouBusca = buscaAnterior.current !== busca;
     filtrosAnteriores.current = filtros;
+    buscaAnterior.current = busca;
+    if (!mudouFiltro && !mudouBusca) return;
+    if (!mudouFiltro && !busca.trim()) return;
     anunciarMensagem(
       `${filtrados.length} ${filtrados.length === 1 ? 'resultado encontrado' : 'resultados encontrados'}`,
     );
-  }, [filtros, filtrados.length]);
+  }, [filtros, busca, filtrados.length]);
 
   const filtrosAtivos = contarFiltrosAtivos(filtros);
 
@@ -94,10 +94,11 @@ export function ExplorarQueryProvider({ children }: { children: ReactNode }) {
       setBusca,
       filtros,
       setFiltros,
+      eletropostos,
       filtrados,
       filtrosAtivos,
     }),
-    [busca, filtros, filtrados, filtrosAtivos],
+    [busca, filtros, eletropostos, filtrados, filtrosAtivos],
   );
 
   return (

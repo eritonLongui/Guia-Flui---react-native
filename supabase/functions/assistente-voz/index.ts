@@ -12,6 +12,8 @@ interface EstacaoContexto {
   id: string;
   nome: string;
   cidade?: string;
+  estado?: string;
+  endereco?: string;
   distanciaKm?: number;
   nota?: number;
   abertoAgora?: boolean;
@@ -25,6 +27,182 @@ interface EstacaoContexto {
   tempoFilaMinutos?: number;
   tempoCargaMinutos?: number;
   horarioFuncionamento?: string;
+}
+
+interface StationRow {
+  id: string;
+  nome: string;
+  endereco: string;
+  cidade: string;
+  estado: string;
+  nota: number | string;
+  aberto_agora: boolean;
+  conectores: EstacaoContexto['conectores'] | string;
+  carregadores_disponiveis: number;
+  carregadores_total: number;
+  tem_comida: boolean;
+  tem_banheiro: boolean;
+  tem_estacionamento: boolean;
+  nivel_compatibilidade: string;
+  tempo_fila_minutos: number;
+  tempo_carga_minutos: number;
+  horario_funcionamento: string;
+}
+
+const CAMPOS_ESTACAO =
+  'id, nome, endereco, cidade, estado, nota, aberto_agora, conectores, carregadores_disponiveis, carregadores_total, tem_comida, tem_banheiro, tem_estacionamento, nivel_compatibilidade, tempo_fila_minutos, tempo_carga_minutos, horario_funcionamento, pontuacao_recomendacao';
+
+const MAX_ESTACOES_CONTEXTO = 16;
+
+const STOPWORDS = new Set([
+  'a',
+  'as',
+  'o',
+  'os',
+  'um',
+  'uma',
+  'uns',
+  'de',
+  'da',
+  'do',
+  'das',
+  'dos',
+  'em',
+  'no',
+  'na',
+  'nos',
+  'nas',
+  'pra',
+  'para',
+  'por',
+  'com',
+  'sem',
+  'me',
+  'meu',
+  'minha',
+  'tem',
+  'temos',
+  'quero',
+  'queria',
+  'pode',
+  'podem',
+  'quais',
+  'qual',
+  'onde',
+  'aqui',
+  'ali',
+  'perto',
+  'proximo',
+  'próximo',
+  'cidade',
+  'bairro',
+  'eletroposto',
+  'eletropostos',
+  'carregador',
+  'carregadores',
+  'recarga',
+  'ponto',
+  'pontos',
+  'estação',
+  'estações',
+]);
+
+/** Apelidos falados → cidade ou estado do catálogo. Chaves longas primeiro. */
+const APELIDOS_LUGAR: { chaves: string[]; cidade?: string; estado?: string }[] = [
+  { chaves: ['rio de janeiro', 'cidade do rio', 'carioca'], cidade: 'Rio de Janeiro' },
+  { chaves: ['sao paulo', 'são paulo', 'sampa'], cidade: 'São Paulo' },
+  { chaves: ['belo horizonte', 'bh'], cidade: 'Belo Horizonte' },
+  { chaves: ['porto alegre', 'poa'], cidade: 'Porto Alegre' },
+  { chaves: ['brasilia', 'brasília'], cidade: 'Brasília' },
+  { chaves: ['campinas'], cidade: 'Campinas' },
+  { chaves: ['curitiba'], cidade: 'Curitiba' },
+  { chaves: ['rj'], estado: 'RJ' },
+  { chaves: ['sp'], estado: 'SP' },
+  { chaves: ['mg'], estado: 'MG' },
+  { chaves: ['pr'], estado: 'PR' },
+  { chaves: ['rs'], estado: 'RS' },
+  { chaves: ['df'], estado: 'DF' },
+];
+
+function semAcento(texto: string): string {
+  return texto.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
+}
+
+function sanitizarIlike(termo: string): string {
+  return termo.replace(/[%_,()]/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function parseConectores(raw: StationRow['conectores']): EstacaoContexto['conectores'] {
+  if (Array.isArray(raw)) return raw;
+  if (typeof raw === 'string') {
+    try {
+      const parsed = JSON.parse(raw) as EstacaoContexto['conectores'];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
+}
+
+function compactarLinha(row: StationRow): EstacaoContexto {
+  return {
+    id: row.id,
+    nome: row.nome,
+    cidade: row.cidade,
+    estado: row.estado,
+    endereco: row.endereco,
+    nota: Number(row.nota),
+    abertoAgora: row.aberto_agora,
+    conectores: parseConectores(row.conectores),
+    carregadoresDisponiveis: row.carregadores_disponiveis,
+    carregadoresTotal: row.carregadores_total,
+    temComida: row.tem_comida,
+    temBanheiro: row.tem_banheiro,
+    temEstacionamento: row.tem_estacionamento,
+    nivelCompatibilidade: row.nivel_compatibilidade,
+    tempoFilaMinutos: row.tempo_fila_minutos,
+    tempoCargaMinutos: row.tempo_carga_minutos,
+    horarioFuncionamento: row.horario_funcionamento,
+  };
+}
+
+function unirEstacoes(listas: EstacaoContexto[][]): EstacaoContexto[] {
+  const porId = new Map<string, EstacaoContexto>();
+  for (const lista of listas) {
+    for (const estacao of lista) {
+      if (!estacao.id || porId.has(estacao.id)) continue;
+      porId.set(estacao.id, estacao);
+    }
+  }
+  return [...porId.values()].slice(0, MAX_ESTACOES_CONTEXTO);
+}
+
+function detectarLugar(
+  pergunta: string,
+  cidades: string[],
+): { cidade?: string; estado?: string } {
+  const normalizada = ` ${semAcento(pergunta)} `;
+  for (const apelido of APELIDOS_LUGAR) {
+    if (apelido.chaves.some((chave) => normalizada.includes(` ${semAcento(chave)} `))) {
+      return { cidade: apelido.cidade, estado: apelido.estado };
+    }
+  }
+  if (/\brio\b/.test(normalizada) && !normalizada.includes('rio grande')) {
+    return { cidade: 'Rio de Janeiro' };
+  }
+  const cidadeCatalogo = cidades.find((cidade) => {
+    const chave = semAcento(cidade);
+    return chave.length >= 4 && normalizada.includes(` ${chave} `);
+  });
+  return cidadeCatalogo ? { cidade: cidadeCatalogo } : {};
+}
+
+function termosBusca(pergunta: string): string[] {
+  return semAcento(pergunta)
+    .split(/[^a-z0-9]+/)
+    .filter((token) => token.length >= 4 && !STOPWORDS.has(token))
+    .slice(0, 4);
 }
 
 interface Mensagem {
@@ -148,9 +326,14 @@ async function transcrever(
   form.append('response_format', 'json');
 
   const nomes = estacoes.map((e) => e.nome).filter(Boolean).slice(0, 12);
-  if (nomes.length > 0) {
-    form.append('prompt', `Eletropostos e recarga de carro elétrico. Nomes possíveis: ${nomes.join(', ')}.`);
-  }
+  const dicas = [
+    'Transcreva exatamente a fala em português do Brasil, palavra por palavra.',
+    'Ignore só ruído de fundo. Não invente cumprimento se a pessoa não cumprimentou.',
+    nomes.length > 0 ? `Se citar um eletroposto, nomes possíveis: ${nomes.join(', ')}.` : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
+  form.append('prompt', dicas);
 
   const res = await fetch('https://api.openai.com/v1/audio/transcriptions', {
     method: 'POST',
@@ -167,6 +350,53 @@ async function transcrever(
   return (payload.text ?? '').trim();
 }
 
+function bytesParaBase64(bytes: Uint8Array): string {
+  const pedaco = 0x8000;
+  let binario = '';
+  for (let i = 0; i < bytes.length; i += pedaco) {
+    binario += String.fromCharCode(...bytes.subarray(i, i + pedaco));
+  }
+  return btoa(binario);
+}
+
+/** Tira reticências e travessões que a síntese transforma em pausa longa. */
+function aliviarPausas(texto: string): string {
+  return texto
+    .replace(/\.{2,}/g, '.')
+    .replace(/[—–]/g, ',')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/**
+ * Voz falada em português do Brasil. Se a síntese falhar, o app cai na voz do aparelho.
+ */
+async function sintetizarFala(texto: string, openaiKey: string): Promise<string | null> {
+  const res = await fetch('https://api.openai.com/v1/audio/speech', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${openaiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'gpt-4o-mini-tts',
+      voice: 'coral',
+      input: texto,
+      instructions:
+        'Fale em português do Brasil, voz feminina, natural e clara, como uma assistente prestativa. Sem pausa dramática e sem tom de GPS.',
+      response_format: 'mp3',
+      speed: 1.12,
+    }),
+  });
+
+  if (!res.ok) {
+    console.error('openai_tts_error', res.status, await res.text());
+    return null;
+  }
+
+  return bytesParaBase64(new Uint8Array(await res.arrayBuffer()));
+}
+
 function json(status: number, body: unknown) {
   return new Response(JSON.stringify(body), {
     status,
@@ -176,6 +406,52 @@ function json(status: number, body: unknown) {
 
 function idsValidos(estacoes: EstacaoContexto[]): Set<string> {
   return new Set(estacoes.map((e) => e.id).filter(Boolean));
+}
+
+type ClienteSupabase = ReturnType<typeof createClient>;
+
+async function consultarCatalogo(
+  supabase: ClienteSupabase,
+  pergunta: string,
+  idsProximos: string[],
+): Promise<EstacaoContexto[]> {
+  const { data: locais, error: erroLocais } = await supabase
+    .from('stations')
+    .select('cidade, estado');
+  if (erroLocais) {
+    console.error('catalogo_locais_error', erroLocais.message);
+  }
+  const cidades = [...new Set((locais ?? []).map((row: { cidade?: string }) => row.cidade).filter(Boolean))] as string[];
+  const lugar = detectarLugar(pergunta, cidades);
+
+  let consulta = supabase.from('stations').select(CAMPOS_ESTACAO).limit(12);
+
+  if (lugar.cidade) {
+    consulta = consulta.ilike('cidade', lugar.cidade);
+  } else if (lugar.estado) {
+    consulta = consulta.eq('estado', lugar.estado);
+  } else {
+    const termos = termosBusca(pergunta).map(sanitizarIlike).filter(Boolean);
+    if (termos.length > 0) {
+      const filtros = termos.flatMap((termo) => [
+        `nome.ilike.%${termo}%`,
+        `endereco.ilike.%${termo}%`,
+        `cidade.ilike.%${termo}%`,
+      ]);
+      consulta = consulta.or(filtros.join(','));
+    } else if (idsProximos.length > 0) {
+      consulta = consulta.in('id', idsProximos.slice(0, 12));
+    } else {
+      consulta = consulta.order('pontuacao_recomendacao', { ascending: false });
+    }
+  }
+
+  const { data, error } = await consulta;
+  if (error) {
+    console.error('catalogo_stations_error', error.message);
+    return [];
+  }
+  return ((data ?? []) as StationRow[]).map(compactarLinha);
 }
 
 function parseAcao(name: string, argsRaw: string, validos: Set<string>): { tipo: TipoAcao; id: string } | null {
@@ -234,20 +510,20 @@ Deno.serve(async (req) => {
     return json(400, { erro: 'Pedido inválido.' });
   }
 
-  const estacoes = Array.isArray(corpo.estacoes) ? corpo.estacoes.slice(0, 15) : [];
+  const proximas = Array.isArray(corpo.estacoes) ? corpo.estacoes.slice(0, 8) : [];
   const historico = Array.isArray(corpo.mensagens) ? corpo.mensagens.slice(-8) : [];
 
   // Com áudio, a fala vira o último turno do usuário. Sem áudio, o app mandou texto digitado.
   let transcricao = '';
   if (corpo.audio?.base64) {
     try {
-      transcricao = await transcrever(corpo.audio, estacoes, openaiKey);
+    transcricao = await transcrever(corpo.audio, proximas, openaiKey);
     } catch (cause) {
       const mensagem = cause instanceof Error ? cause.message : 'Não consegui entender o áudio.';
       return json(400, { erro: mensagem });
     }
     if (!transcricao) {
-      return json(400, { erro: 'Não ouvi nada. Toque no microfone e fale de novo.' });
+      return json(400, { erro: 'Não ouvi nada. Pode falar de novo.' });
     }
     historico.push({ papel: 'usuario', texto: transcricao });
   }
@@ -257,16 +533,28 @@ Deno.serve(async (req) => {
     return json(400, { erro: 'Não entendi o que você disse.' });
   }
 
+  const catalogo = await consultarCatalogo(
+    supabase,
+    ultima,
+    proximas.map((e) => e.id).filter(Boolean),
+  );
+  const estacoes = unirEstacoes([catalogo, proximas]);
   const validos = idsValidos(estacoes);
   const system = [
-    'Você é o Guia, assistente de voz do app Guia Flui, em português do Brasil.',
-    'Ajude motoristas de carro elétrico com eletropostos próximos e recarga em geral (conectores, kW, tempo, fila, segurança, conveniências).',
-    'Responda em texto curto, falável em voz alta: no máximo 3 frases. Sem markdown, listas longas ou URLs.',
-    'Só fale de estações que estão no contexto JSON. Nunca invente nome, distância ou ID.',
-    'Se o usuário escolher um ponto para ir, chame abrir_rota com o id. Se quiser só ver no mapa, destacar_ponto. Se pedir ficha, abrir_detalhe.',
-    'Se não houver estações no contexto, explique e fale só de recarga em geral.',
-    `Estações próximas:\n${JSON.stringify(estacoes)}`,
-    corpo.veiculo ? `Veículo do usuário:\n${JSON.stringify(corpo.veiculo)}` : 'Veículo do usuário: não informado.',
+    'Você é a Guia, assistente de voz feminina do app Guia Flui, em português do Brasil.',
+    'Use o seu conhecimento da OpenAI para falar de recarga, carro elétrico, híbrido, autonomia, conectores, custo, incentivo, história e mercado no Brasil. Responda nesses temas. Não diga que não sabe. Se um número for incerto, diga que é aproximado e complete com o que puder afirmar.',
+    'Responda com clareza para voz alta. Em recarga, carro ou Brasil em geral, use até 4 frases curtas. Em eletroposto específico do app, até 2 frases. Sem reticências, travessões, markdown ou URLs.',
+    'Não cumprimente (boa tarde, oi) a menos que ela tenha cumprimentado agora.',
+    'Perguntas fora do tema (futebol, notícia, hora, eleição, política geral): em uma frase diga que não acompanha isso e ofereça ajuda com recarga, carro elétrico ou eletroposto. Não invente placar.',
+    'Eletropostos do app: nome, endereço, distância e ID só do JSON do catálogo. Nunca invente posto. Para cidade, bairro ou região, use o catálogo. Não diga que não temos ponto se o catálogo listar.',
+    'Use as estações próximas do mapa só quando ela falar de perto, aqui, agora ou perto de mim.',
+    'Se o catálogo e as próximas vierem vazios para o local pedido, diga que ainda não temos pontos cadastrados lá e complete com recarga ou mercado em geral se couber.',
+    'Se o usuário escolher um ponto para ir, chame abrir_rota com o id. Se quiser só ver no mapa, destacar_ponto. Se pedir ficha, abrir_detalhe. Em pergunta geral de recarga, carro ou Brasil, não chame ferramenta.',
+    `Estações do catálogo consultadas agora:\n${JSON.stringify(catalogo)}`,
+    `Estações próximas no mapa do usuário:\n${JSON.stringify(proximas)}`,
+    corpo.veiculo
+      ? `Veículo do usuário (use nas respostas de recarga e autonomia):\n${JSON.stringify(corpo.veiculo)}`
+      : 'Veículo do usuário: não informado. Se a pergunta depender do modelo, peça em uma frase ou responda no geral.',
   ].join('\n\n');
 
   const messages = [
@@ -284,8 +572,9 @@ Deno.serve(async (req) => {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'gpt-4o-mini',
+      model: 'gpt-4o',
       temperature: 0.4,
+      max_tokens: 320,
       messages,
       tools: ferramentas,
       tool_choice: 'auto',
@@ -323,9 +612,11 @@ Deno.serve(async (req) => {
     } else if (primeira?.tipo === 'destacar_ponto' && estacao) {
       texto = `Marquei ${estacao.nome} no mapa.`;
     } else {
-      texto = 'Posso falar dos pontos próximos ou de recarga. O que você precisa?';
+      texto = 'Posso falar de recarga, carro elétrico ou eletropostos. O que você precisa?';
     }
   }
 
-  return json(200, { transcricao, texto, acoes });
+  const audioBase64 = await sintetizarFala(aliviarPausas(texto), openaiKey);
+
+  return json(200, { transcricao, texto, acoes, audioBase64 });
 });

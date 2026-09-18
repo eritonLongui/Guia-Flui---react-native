@@ -1,3 +1,4 @@
+import { isSupabaseConfigured } from '@/lib/supabase';
 import { isMockModeEnabled } from '@/repositories/dataSource';
 import type {
   AvaliacaoRepository,
@@ -10,7 +11,7 @@ import * as mock from '@/repositories/mockRepositories';
 import * as remote from '@/repositories/supabaseRepositories';
 
 function eletroposto(): EletropostoRepository {
-  return isMockModeEnabled() ? mock.eletropostoRepository : remote.eletropostoRepository;
+  return isSupabaseConfigured ? remote.eletropostoRepository : mock.eletropostoRepository;
 }
 
 function usuario(): UsuarioRepository {

@@ -66,7 +66,9 @@ EXPO_PUBLIC_REQUIRE_EMAIL_CONFIRMATION=false
 
 `EXPO_PUBLIC_REQUIRE_EMAIL_CONFIRMATION` é uma **feature flag** (padrão `false`): o cadastro entra na hora. Isso só funciona se no Supabase, Authentication → Providers → Email, **Confirm email** estiver desligado. Para exigir o link de novo, ligue a flag `true` **e** o Confirm email no dashboard.
 
-O assistente de voz no mapa grava o áudio com `expo-audio` e usa uma Edge Function (`assistente-voz`) que transcreve e responde, com `OPENAI_API_KEY` só no Supabase (`npx supabase secrets set` + `npx supabase functions deploy assistente-voz`). Não coloque essa chave no `.env` do app. Precisa de build nativo (não Expo Go), mas funciona no Simulator do iOS.
+O **assistente de voz** (mapa Explorar) grava o microfone e manda o áudio para a Edge Function `assistente-voz`: transcrição no mini, **chat em gpt-4o**, voz `gpt-4o-mini-tts`. A `OPENAI_API_KEY` fica só no Supabase (`npx supabase secrets set` + `npx supabase functions deploy assistente-voz`). Não coloque essa chave no `.env` do app. Precisa de **build nativo** (dev client ou APK), não Expo Go. No Simulator do iOS: **I/O → Audio Input**.
+
+Painel web de eletropostos, avaliações e usuários: pasta [`admin/`](admin/) (Next.js). Ver [docs/ATUALIZACOES.md](docs/ATUALIZACOES.md).
 
 Quem já foi convidado no Expo (`@marcomendessv/guia-flui`) puxa as mesmas chaves do APK:
 
@@ -172,6 +174,7 @@ Quem só testa **não** precisa clonar o repo. iPhone não instala APK. Detalhes
 | Documento | Conteúdo |
 |-----------|----------|
 | [docs/SETUP.md](docs/SETUP.md) | Setup detalhado, iOS, Android, EAS, dashboard admin, troubleshooting |
+| [docs/ATUALIZACOES.md](docs/ATUALIZACOES.md) | Admin (web) e assistente de voz — o que foi feito e como liga |
 | [admin/README.md](admin/README.md) | Painel web (Next.js) — local e Vercel |
 | [docs/BRANDING.md](docs/BRANDING.md) | Ícones do app e logotipo (`assets/images/`) |
 | [docs/DECISOES.md](docs/DECISOES.md) | Decisões de produto, dados, motion, identidade e acessibilidade (relatório acadêmico) |
@@ -188,6 +191,7 @@ Quem só testa **não** precisa clonar o repo. iPhone não instala APK. Detalhes
 - **React Native Maps** · **@gorhom/bottom-sheet**
 - Fontes **Lexend Giga** + **Poppins**
 - **EAS Build** para distribuição Android
+- **OpenAI** (Edge Function `assistente-voz`) — transcrição, gpt-4o e TTS
 - **Next.js** (pasta `admin/`) — dashboard web na Vercel
 - Repository Pattern (mock → Supabase)
 
@@ -200,12 +204,13 @@ Quem só testa **não** precisa clonar o repo. iPhone não instala APK. Detalhes
 | Splash | Branding Guia Flui |
 | Welcome / Login / Cadastro | Auth com email e senha (Supabase) |
 | Home | Veículo ativo, carrossel de estações, recomendação |
-| Explorar | Mapa fullscreen + busca + sheet com resultados |
+| Explorar | Mapa fullscreen + busca + assistente de voz + sheet com resultados |
 | Detalhe | Compatibilidade, conectores, avaliações |
 | Rota | Navegação até o eletroposto |
 | Avaliar | Avaliação do posto |
 | Favoritos | Estações salvas |
 | Perfil | Usuário, veículo, configurações, modo mockado |
+| Admin (web) | Painel Next.js — eletropostos, avaliações, usuários |
 
 ---
 

@@ -2,7 +2,7 @@ import { cn } from '@/lib/cn';
 import { colors } from '@/constants/theme';
 import { Pressable, Text, type PressableProps } from 'react-native';
 
-type ButtonVariant = 'primary' | 'secondary' | 'ghost';
+type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'accent';
 
 interface ButtonProps extends PressableProps {
   variant?: ButtonVariant;
@@ -15,6 +15,7 @@ const variantStyles: Record<
   { container: string; text: string; backgroundColor?: string }
 > = {
   primary: { container: '', text: 'text-background', backgroundColor: colors.white },
+  accent: { container: '', text: 'text-background', backgroundColor: colors.accent },
   secondary: { container: 'bg-elevated', text: 'text-text-primary' },
   ghost: { container: 'bg-transparent', text: 'text-text-primary' },
 };

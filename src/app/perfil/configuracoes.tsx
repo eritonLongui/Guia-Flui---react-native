@@ -34,7 +34,7 @@ export default function ConfiguracoesScreen() {
         </View>
       </GradientFill>
       <Text style={styles.hint}>
-        Com o modo mockado ligado, a home e o mapa usam dados de demonstração neste aparelho.
+        Com o modo mockado ligado, conta e veículo de demonstração ficam neste aparelho. Os eletropostos do mapa vêm do banco quando o Supabase está configurado.
       </Text>
 
       <GradientFill variant="card" rounded={layout.cardRadius} style={styles.block}>

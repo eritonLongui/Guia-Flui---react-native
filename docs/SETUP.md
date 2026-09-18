@@ -64,7 +64,9 @@ npx supabase secrets set OPENAI_API_KEY=sk-...
 npx supabase functions deploy assistente-voz
 ```
 
-Precisa de build nativo (`npm run ios` / `npm run android`) porque o microfone não roda no Expo Go. No Simulator do iOS funciona: ligue **I/O → Audio Input → microfone do Mac**. A flag `EXPO_PUBLIC_ASSISTENTE_VOZ` (padrão `true`) liga/desliga o botão no mapa, e o overlay sempre aceita a pergunta digitada como alternativa.
+Precisa de build nativo (`npm run ios` / `npm run android`) porque o microfone não roda no Expo Go. No Simulator do iOS funciona: ligue **I/O → Audio Input → microfone do Mac**. A flag `EXPO_PUBLIC_ASSISTENTE_VOZ` (padrão `true`) liga/desliga o botão no mapa. Não há campo de texto: a pergunta é falada.
+
+Resumo do admin e da voz: [docs/ATUALIZACOES.md](ATUALIZACOES.md).
 
 **Confirm email (feature flag):** o app lê `EXPO_PUBLIC_REQUIRE_EMAIL_CONFIRMATION` (padrão `false`). Com `false`, o cadastro entra na hora — no dashboard, Authentication → Providers → Email, desative **Confirm email**. Para voltar a exigir o link, ligue os dois: a flag `true` e Confirm email no Supabase.
 

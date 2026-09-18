@@ -1,22 +1,27 @@
 import { perguntarAssistenteVoz, type AcaoAssistente, type MensagemAssistente } from '@/lib/assistenteVoz';
 import {
-  MAX_DURACAO_GRAVACAO_MS,
-  MIN_DURACAO_GRAVACAO_MS,
-  PRESET_VOZ,
-  descartarAudio,
   encerrarSessaoGravacao,
-  lerAudioGravado,
   microfoneDisponivel,
   pedirPermissaoMicrofone,
   prepararSessaoGravacao,
   type AudioGravado,
 } from '@/lib/gravacaoVoz';
+import {
+  TAXA_PCM_HZ,
+  float32ParaInt16,
+  juntarPcm,
+  maximoAmostrasPcm,
+  minimoAmostrasPcm,
+  pcmParaAudioWav,
+  volumeDePcm16,
+} from '@/lib/pcmVoz';
+import { falar, pararFala } from '@/lib/vozAssistente';
+import { pararSom, tocarSom } from '@/lib/sonsAssistente';
 import type { Eletroposto, Veiculo } from '@/types';
-import { useAudioRecorder } from 'expo-audio';
-import * as Speech from 'expo-speech';
+import { useAudioStream } from 'expo-audio';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-export type EstadoAssistente = 'idle' | 'gravando' | 'pensando' | 'falando' | 'erro';
+export type EstadoAssistente = 'idle' | 'ouvindo' | 'pausado' | 'pensando' | 'falando' | 'erro';
 
 interface UseAssistenteVozParams {
   eletropostos: Eletroposto[];
@@ -24,14 +29,14 @@ interface UseAssistenteVozParams {
   onAcoes: (acoes: AcaoAssistente[]) => void;
 }
 
+/**
+ * Play começa a capturar PCM do microfone; pause empacota WAV e envia.
+ */
 export function useAssistenteVoz({ eletropostos, veiculo, onAcoes }: UseAssistenteVozParams) {
-  const gravador = useAudioRecorder(PRESET_VOZ);
-
   const [aberto, setAberto] = useState(false);
   const [estado, setEstado] = useState<EstadoAssistente>('idle');
-  const [transcricao, setTranscricao] = useState('');
-  const [resposta, setResposta] = useState('');
   const [erro, setErro] = useState<string | null>(null);
+  const [volume, setVolume] = useState(0);
 
   const eletropostosRef = useRef(eletropostos);
   eletropostosRef.current = eletropostos;
@@ -43,176 +48,191 @@ export function useAssistenteVoz({ eletropostos, veiculo, onAcoes }: UseAssisten
   const historicoRef = useRef<MensagemAssistente[]>([]);
   const processandoRef = useRef(false);
   const gravandoRef = useRef(false);
-  /** Cobre a janela assíncrona entre pedir a permissão e o gravador realmente ligar. */
   const iniciandoRef = useRef(false);
-  /** Invalida turnos antigos: quem voltar com turno diferente do atual é descartado. */
   const turnoRef = useRef(0);
   const abertoRef = useRef(false);
-  const cortePorTempoRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const estadoRef = useRef<EstadoAssistente>('idle');
+  estadoRef.current = estado;
+  const chunksRef = useRef<Int16Array[]>([]);
+  const taxaRef = useRef(TAXA_PCM_HZ);
+  const amostrasRef = useRef(0);
+  const finalizarRef = useRef<() => Promise<void>>(async () => {});
 
-  const limparCorte = useCallback(() => {
-    if (cortePorTempoRef.current) {
-      clearTimeout(cortePorTempoRef.current);
-      cortePorTempoRef.current = null;
-    }
-  }, []);
-
-  const descartarGravacao = useCallback(async () => {
-    limparCorte();
-    if (!gravandoRef.current) return;
-    gravandoRef.current = false;
-    try {
-      await gravador.stop();
-      descartarAudio(gravador.uri);
-    } catch {
-      /* gravador já parado */
-    }
-    await encerrarSessaoGravacao();
-  }, [gravador, limparCorte]);
+  const { stream } = useAudioStream({
+    sampleRate: TAXA_PCM_HZ,
+    channels: 1,
+    encoding: 'float32',
+    onBuffer: (buffer) => {
+      if (!gravandoRef.current) return;
+      const pcm = float32ParaInt16(buffer.data);
+      if (pcm.length === 0) return;
+      chunksRef.current.push(pcm);
+      amostrasRef.current += pcm.length;
+      if (buffer.sampleRate) taxaRef.current = buffer.sampleRate;
+      setVolume(volumeDePcm16(pcm));
+      if (amostrasRef.current >= maximoAmostrasPcm(taxaRef.current)) {
+        void finalizarRef.current();
+      }
+    },
+  });
 
   const fechar = useCallback(() => {
     turnoRef.current += 1;
     processandoRef.current = false;
     abertoRef.current = false;
-    Speech.stop();
-    void descartarGravacao();
+    gravandoRef.current = false;
+    chunksRef.current = [];
+    amostrasRef.current = 0;
+    try {
+      stream.stop();
+    } catch {
+      /* stream já parado */
+    }
+    void pararFala();
+    pararSom();
+    void encerrarSessaoGravacao();
     historicoRef.current = [];
+    setVolume(0);
     setAberto(false);
     setEstado('idle');
-    setTranscricao('');
-    setResposta('');
     setErro(null);
-  }, [descartarGravacao]);
+  }, [stream]);
 
-  const enviarTurno = useCallback(
-    async (entrada: { texto?: string; audio?: AudioGravado }) => {
-      if (processandoRef.current || !abertoRef.current) return;
+  const enviarTurno = useCallback(async (audio: AudioGravado) => {
+    if (processandoRef.current || !abertoRef.current) return;
 
-      processandoRef.current = true;
-      const turno = turnoRef.current + 1;
-      turnoRef.current = turno;
-      Speech.stop();
-      setErro(null);
-      setEstado('pensando');
+    processandoRef.current = true;
+    const turno = turnoRef.current + 1;
+    turnoRef.current = turno;
+    setErro(null);
+    setEstado('pensando');
 
-      const textoUsuario = entrada.texto?.trim() ?? '';
-      if (textoUsuario) {
-        setTranscricao(textoUsuario);
-        historicoRef.current = [...historicoRef.current, { papel: 'usuario', texto: textoUsuario }];
-      }
+    try {
+      const resultado = await perguntarAssistenteVoz({
+        mensagens: historicoRef.current,
+        eletropostos: eletropostosRef.current,
+        veiculo: veiculoRef.current,
+        audio,
+      });
 
-      try {
-        const resultado = await perguntarAssistenteVoz({
-          mensagens: historicoRef.current,
-          eletropostos: eletropostosRef.current,
-          veiculo: veiculoRef.current,
-          audio: entrada.audio ?? null,
-        });
+      if (turno !== turnoRef.current || !abertoRef.current) return;
 
-        if (turno !== turnoRef.current || !abertoRef.current) return;
-
-        // Com áudio, só aqui sabemos o que o usuário disse — o servidor transcreveu.
-        if (resultado.transcricao) {
-          setTranscricao(resultado.transcricao);
-          historicoRef.current = [
-            ...historicoRef.current,
-            { papel: 'usuario', texto: resultado.transcricao },
-          ];
-        }
-
+      if (resultado.transcricao) {
         historicoRef.current = [
           ...historicoRef.current,
-          { papel: 'assistente', texto: resultado.texto },
+          { papel: 'usuario', texto: resultado.transcricao },
         ];
-        setResposta(resultado.texto);
-        setEstado('falando');
-
-        await new Promise<void>((resolve) => {
-          Speech.speak(resultado.texto, {
-            language: 'pt-BR',
-            onDone: resolve,
-            onStopped: resolve,
-            onError: () => resolve(),
-          });
-        });
-
-        if (turno !== turnoRef.current || !abertoRef.current) return;
-
-        if (resultado.acoes.length > 0) {
-          onAcoesRef.current(resultado.acoes);
-          historicoRef.current = [];
-          abertoRef.current = false;
-          setAberto(false);
-          setEstado('idle');
-          setTranscricao('');
-          setResposta('');
-          setErro(null);
-          return;
-        }
-        setEstado('idle');
-      } catch (cause) {
-        if (turno !== turnoRef.current || !abertoRef.current) return;
-        const mensagem = cause instanceof Error ? cause.message : 'Não consegui responder agora.';
-        setErro(mensagem);
-        setEstado('erro');
-      } finally {
-        if (turno === turnoRef.current) {
-          processandoRef.current = false;
-        }
       }
-    },
-    [],
-  );
+      historicoRef.current = [
+        ...historicoRef.current,
+        { papel: 'assistente', texto: resultado.texto },
+      ];
 
-  const pararEEnviar = useCallback(async () => {
-    if (!gravandoRef.current) return;
-    limparCorte();
-    gravandoRef.current = false;
+      setEstado('falando');
+      await falar({ texto: resultado.texto, audioBase64: resultado.audioBase64 });
 
-    let duracaoMs = 0;
-    try {
-      duracaoMs = gravador.getStatus().durationMillis;
-      await gravador.stop();
-    } catch {
-      await encerrarSessaoGravacao();
-      if (!abertoRef.current) return;
-      setErro('Não consegui finalizar a gravação. Tente de novo.');
-      setEstado('erro');
-      return;
-    }
+      if (turno !== turnoRef.current || !abertoRef.current) return;
 
-    const uri = gravador.uri;
-    await encerrarSessaoGravacao();
-    if (!abertoRef.current) return;
+      if (resultado.acoes.length > 0) {
+        onAcoesRef.current(resultado.acoes);
+        historicoRef.current = [];
+        abertoRef.current = false;
+        setAberto(false);
+        setEstado('idle');
+        setErro(null);
+        return;
+      }
 
-    if (duracaoMs < MIN_DURACAO_GRAVACAO_MS) {
-      descartarAudio(uri);
-      setEstado('idle');
-      return;
-    }
-
-    setEstado('pensando');
-    try {
-      const audio = await lerAudioGravado(uri);
-      await enviarTurno({ audio });
+      processandoRef.current = false;
+      setEstado('pausado');
     } catch (cause) {
+      if (turno !== turnoRef.current || !abertoRef.current) return;
+      setErro(cause instanceof Error ? cause.message : 'Não consegui responder agora.');
+      setEstado('erro');
+      tocarSom('erro');
+    } finally {
+      if (turno === turnoRef.current) {
+        processandoRef.current = false;
+      }
+    }
+  }, []);
+
+  const finalizarTurno = useCallback(async () => {
+    if (!gravandoRef.current) return;
+    gravandoRef.current = false;
+    setVolume(0);
+    setEstado('pensando');
+
+    try {
+      stream.stop();
+    } catch {
+      /* já parado */
+    }
+
+    const pcm = juntarPcm(chunksRef.current);
+    chunksRef.current = [];
+    const amostras = amostrasRef.current;
+    amostrasRef.current = 0;
+
+    if (!abertoRef.current) {
+      await encerrarSessaoGravacao();
+      return;
+    }
+
+    if (amostras < minimoAmostrasPcm(taxaRef.current)) {
+      await encerrarSessaoGravacao();
+      setEstado('pausado');
+      setErro('A fala ficou curta demais. Toque em play e fale de novo.');
+      return;
+    }
+
+    tocarSom('fimEscuta');
+    try {
+      const audio = await pcmParaAudioWav(pcm, taxaRef.current);
+      await encerrarSessaoGravacao();
+      await enviarTurno(audio);
+    } catch (cause) {
+      await encerrarSessaoGravacao();
       if (!abertoRef.current) return;
       setErro(cause instanceof Error ? cause.message : 'Não consegui enviar o áudio.');
       setEstado('erro');
+      tocarSom('erro');
     }
-  }, [enviarTurno, gravador, limparCorte]);
+  }, [enviarTurno, stream]);
 
-  const comecarAGravar = useCallback(async () => {
+  finalizarRef.current = finalizarTurno;
+
+  const iniciarStream = useCallback(async () => {
+    try {
+      stream.stop();
+    } catch {
+      /* ainda não tinha começado */
+    }
+    await prepararSessaoGravacao();
+    try {
+      await stream.start();
+    } catch {
+      try {
+        stream.stop();
+      } catch {
+        /* retry */
+      }
+      await prepararSessaoGravacao();
+      await stream.start();
+    }
+  }, [stream]);
+
+  const ouvir = useCallback(async () => {
     if (gravandoRef.current || iniciandoRef.current || processandoRef.current) return;
     iniciandoRef.current = true;
     setErro(null);
-    setTranscricao('');
-    setResposta('');
+    setVolume(0);
 
     try {
       if (!microfoneDisponivel) {
-        setErro('O assistente de voz só funciona no app. Pergunte por escrito abaixo.');
+        setErro('O assistente de voz só funciona no app.');
         setEstado('erro');
+        tocarSom('erro');
         return;
       }
 
@@ -220,16 +240,19 @@ export function useAssistenteVoz({ eletropostos, veiculo, onAcoes }: UseAssisten
       if (!permitido) {
         setErro('Preciso da permissão do microfone para ouvir você.');
         setEstado('erro');
+        tocarSom('erro');
         return;
       }
 
       if (!abertoRef.current) return;
 
-      Speech.stop();
+      chunksRef.current = [];
+      amostrasRef.current = 0;
+      taxaRef.current = TAXA_PCM_HZ;
+
       try {
-        await prepararSessaoGravacao();
-        await gravador.prepareToRecordAsync();
-        gravador.record();
+        pararSom();
+        await iniciarStream();
       } catch {
         await encerrarSessaoGravacao();
         setErro('Não consegui abrir o microfone. Tente de novo.');
@@ -238,67 +261,64 @@ export function useAssistenteVoz({ eletropostos, veiculo, onAcoes }: UseAssisten
       }
 
       gravandoRef.current = true;
-      setEstado('gravando');
-
-      limparCorte();
-      cortePorTempoRef.current = setTimeout(() => {
-        void pararEEnviar();
-      }, MAX_DURACAO_GRAVACAO_MS);
+      setEstado('ouvindo');
     } finally {
       iniciandoRef.current = false;
     }
-  }, [gravador, limparCorte, pararEEnviar]);
+  }, [iniciarStream]);
 
-  const abrir = useCallback(async () => {
+  const abrir = useCallback(() => {
     abertoRef.current = true;
     setAberto(true);
-    await comecarAGravar();
-  }, [comecarAGravar]);
+    setEstado('pausado');
+    setErro(null);
+    setVolume(0);
+  }, []);
 
-  const enviarTexto = useCallback(
-    (textoDigitado: string) => {
-      const texto = textoDigitado.trim();
-      if (!texto) return;
-      void descartarGravacao().then(() => enviarTurno({ texto }));
-    },
-    [descartarGravacao, enviarTurno],
-  );
-
-  // Usa refs, não `estado`: toque duplo rápido chegaria aqui com o state ainda velho.
-  const tocarMicrofone = useCallback(async () => {
-    if (!abertoRef.current) {
-      await abrir();
-      return;
-    }
+  const alternarPlayPause = useCallback(async () => {
     if (iniciandoRef.current) return;
-    if (gravandoRef.current) {
-      await pararEEnviar();
+
+    const atual = estadoRef.current;
+    if (atual === 'pensando' || atual === 'falando') return;
+
+    if (atual === 'ouvindo' || gravandoRef.current) {
+      await finalizarTurno();
       return;
     }
-    if (processandoRef.current) {
-      fechar();
+
+    setErro(null);
+    await ouvir();
+  }, [finalizarTurno, ouvir]);
+
+  const tocarMicrofone = useCallback(() => {
+    if (!abertoRef.current) {
+      abrir();
       return;
     }
-    await comecarAGravar();
-  }, [abrir, comecarAGravar, fechar, pararEEnviar]);
+    fechar();
+  }, [abrir, fechar]);
 
   useEffect(
     () => () => {
-      limparCorte();
-      Speech.stop();
+      gravandoRef.current = false;
+      try {
+        stream.stop();
+      } catch {
+        /* unmount */
+      }
+      void pararFala();
     },
-    [limparCorte],
+    [stream],
   );
 
   return {
     aberto,
     estado,
-    transcricao,
-    resposta,
     erro,
+    volume: estado === 'ouvindo' ? volume : 0,
     abrir,
     fechar,
     tocarMicrofone,
-    enviarTexto,
+    alternarPlayPause,
   };
 }

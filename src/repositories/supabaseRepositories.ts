@@ -12,6 +12,7 @@ import {
   type StationRow,
   type VehicleRow,
 } from '@/lib/mappers';
+import { detectarLugar, sanitizarIlike } from '@/lib/lugarEstacao';
 import { supabase } from '@/lib/supabase';
 import type {
   AtualizarAvaliacaoInput,
@@ -72,16 +73,30 @@ export class SupabaseEletropostoRepository implements EletropostoRepository {
   }
 
   async buscar(termo: string): Promise<Eletroposto[]> {
-    const t = termo.toLowerCase().trim();
+    const t = termo.trim();
     if (!t) return this.listar();
 
-    const safe = t.replace(/[%_,()]/g, ' ').trim();
-    if (!safe) return this.listar();
+    const { data: locais, error: erroLocais } = await supabase.from('stations').select('cidade');
+    if (erroLocais) throw new Error(erroLocais.message);
+    const cidades = [
+      ...new Set((locais ?? []).map((row: { cidade?: string }) => row.cidade).filter(Boolean)),
+    ] as string[];
+    const lugar = detectarLugar(t, cidades);
 
-    const { data, error } = await supabase
-      .from('stations')
-      .select('*')
-      .or(`nome.ilike.%${safe}%,endereco.ilike.%${safe}%,cidade.ilike.%${safe}%`);
+    let consulta = supabase.from('stations').select('*');
+    if (lugar.cidade) {
+      consulta = consulta.ilike('cidade', lugar.cidade);
+    } else if (lugar.estado) {
+      consulta = consulta.eq('estado', lugar.estado);
+    } else {
+      const safe = sanitizarIlike(t);
+      if (!safe) return this.listar();
+      consulta = consulta.or(
+        `nome.ilike.%${safe}%,endereco.ilike.%${safe}%,cidade.ilike.%${safe}%,estado.ilike.%${safe}%`,
+      );
+    }
+
+    const { data, error } = await consulta;
     const rows = assertOk<StationRow[]>(error, data, 'Não foi possível buscar eletropostos');
     return stationsComDistancia(rows);
   }

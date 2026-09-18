@@ -34,13 +34,15 @@ export interface EstacaoAssistente {
 }
 
 export interface RespostaAssistente {
-  /** O que a Edge Function entendeu do áudio. Vazio quando o usuário digitou. */
+  /** O que a Edge Function entendeu do áudio. Fica só no histórico, não na tela. */
   transcricao: string;
   texto: string;
   acoes: AcaoAssistente[];
+  /** MP3 gerado no servidor (português do Brasil). Ausente se a síntese falhar. */
+  audioBase64: string | null;
 }
 
-const MAX_ESTACOES = 15;
+const MAX_ESTACOES = 8;
 const MAX_MENSAGENS = 8;
 
 export function compactarEstacao(ep: Eletroposto): EstacaoAssistente {
@@ -117,6 +119,7 @@ export async function perguntarAssistenteVoz(params: {
     transcricao?: string;
     texto?: string;
     acoes?: AcaoAssistente[];
+    audioBase64?: string | null;
     erro?: string;
   } | null;
   if (!payload || payload.erro) {
@@ -125,7 +128,8 @@ export async function perguntarAssistenteVoz(params: {
 
   return {
     transcricao: payload.transcricao?.trim() ?? '',
-    texto: payload.texto?.trim() || 'Posso falar dos pontos próximos. O que você precisa?',
+    texto: payload.texto?.trim() || 'Posso falar de recarga, carro elétrico ou eletropostos. O que você precisa?',
     acoes: Array.isArray(payload.acoes) ? payload.acoes : [],
+    audioBase64: payload.audioBase64?.trim() || null,
   };
 }

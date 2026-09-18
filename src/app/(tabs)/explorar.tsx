@@ -34,7 +34,8 @@ export default function ExplorarScreen() {
   const insets = useSafeAreaInsets();
   const { localizacao, isManual } = useLocalizacao();
   const { veiculo } = useVeiculoAtivo();
-  const { busca, setBusca, filtros, setFiltros, filtrados, filtrosAtivos } = useExplorarQuery();
+  const { busca, setBusca, filtros, setFiltros, eletropostos, filtrados, filtrosAtivos } =
+    useExplorarQuery();
 
   const buscaRef = useRef<TextInput>(null);
   const mapaRef = useRef<MapaExplorarHandle>(null);
@@ -77,6 +78,9 @@ export default function ExplorarScreen() {
     const detalhe = acoes.find((acao) => acao.tipo === 'abrir_detalhe');
     const destaque = acoes.find((acao) => acao.tipo === 'destacar_ponto');
 
+    setBusca('');
+    setResultadosAbertos(false);
+
     if (rota) {
       router.push(`/rota/${rota.id}`);
       return;
@@ -86,16 +90,23 @@ export default function ExplorarScreen() {
       return;
     }
     if (destaque) {
-      setResultadosAbertos(false);
       setSelecionado(destaque.id);
     }
-  }, []);
+  }, [setBusca]);
 
   const assistente = useAssistenteVoz({
-    eletropostos: filtrados,
+    eletropostos,
     veiculo,
     onAcoes: executarAcoesAssistente,
   });
+
+  const buscaAtiva = busca.trim().length > 0;
+
+  useEffect(() => {
+    if (!buscaAtiva || selecionado) return;
+    if (filtrados.length === 0) return;
+    mapaRef.current?.encaixarEstacoes(filtrados);
+  }, [buscaAtiva, filtrados, selecionado]);
 
   const mostrarAssistente = flags.assistenteVoz && Platform.OS !== 'web';
 
@@ -160,6 +171,7 @@ export default function ExplorarScreen() {
           eletropostos={filtrados}
           selecionado={selecionado}
           origem={localizacao}
+          seguirOrigem={!buscaAtiva}
           onSelectMarker={handleSelectMarker}
           onOpenDetalhe={handleSelect}
           onPressMap={fecharResultados}
@@ -251,11 +263,11 @@ export default function ExplorarScreen() {
           <Pressable
             style={[
               styles.filterButton,
-              (assistente.aberto || assistente.estado === 'gravando') && styles.micButtonActive,
+              (assistente.aberto || assistente.estado === 'ouvindo') && styles.micButtonActive,
             ]}
             accessibilityRole="button"
-            accessibilityLabel={assistente.aberto ? 'Assistente de voz aberto' : 'Falar com o Guia'}
-            accessibilityHint="Abre o assistente de voz sobre eletropostos próximos"
+            accessibilityLabel={assistente.aberto ? 'Encerrar conversa por voz' : 'Falar com o Guia'}
+            accessibilityHint="Um toque inicia a conversa. O Guia envia quando você parar de falar."
             hitSlop={HIT_SLOP_PADRAO}
             onPress={() => {
               fecharResultados();
@@ -265,7 +277,7 @@ export default function ExplorarScreen() {
               aria-hidden={true}
               size={20}
               color={
-                assistente.estado === 'gravando' ? colors.backgroundEnd : colors.textPrimary
+                assistente.estado === 'ouvindo' ? colors.backgroundEnd : colors.textPrimary
               }
             />
           </Pressable>
@@ -296,14 +308,12 @@ export default function ExplorarScreen() {
         <AssistenteVozOverlay
           visible={assistente.aberto}
           estado={assistente.estado}
-          transcricao={assistente.transcricao}
-          resposta={assistente.resposta}
           erro={assistente.erro}
+          volume={assistente.volume}
           onClose={assistente.fechar}
-          onToggleEscuta={() => {
-            void assistente.tocarMicrofone();
+          onPlayPause={() => {
+            void assistente.alternarPlayPause();
           }}
-          onEnviarTexto={assistente.enviarTexto}
         />
       ) : null}
     </View>

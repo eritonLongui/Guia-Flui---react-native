@@ -1,77 +1,55 @@
+import { AssistenteVozAvatar } from '@/components/AssistenteVozAvatar';
 import { Button } from '@/components/Button';
 import { GradientFill } from '@/components/GradientFill';
 import { colors, layout, spacing } from '@/constants/theme';
 import type { EstadoAssistente } from '@/hooks/useAssistenteVoz';
 import { HIT_SLOP_PADRAO } from '@/lib/a11y';
-import { Mic, X } from 'lucide-react-native';
-import { useEffect, useState } from 'react';
-import { Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import Animated, {
-  Easing,
-  FadeIn,
-  FadeOut,
-  useAnimatedStyle,
-  useSharedValue,
-  withRepeat,
-  withTiming,
-} from 'react-native-reanimated';
+import { X } from 'lucide-react-native';
+import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface AssistenteVozOverlayProps {
   visible: boolean;
   estado: EstadoAssistente;
-  transcricao: string;
-  resposta: string;
   erro: string | null;
+  volume: number;
   onClose: () => void;
-  onToggleEscuta: () => void;
-  onEnviarTexto: (texto: string) => void;
+  onPlayPause: () => void;
 }
 
 function rotuloEstado(estado: EstadoAssistente): string {
-  if (estado === 'gravando') return 'Gravando… toque para enviar';
+  if (estado === 'ouvindo') return 'Ouvindo…';
+  if (estado === 'pausado') return 'Toque em Falar para começar';
   if (estado === 'pensando') return 'Pensando…';
   if (estado === 'falando') return 'Falando…';
   if (estado === 'erro') return 'Algo deu errado';
-  return 'Toque no microfone para falar';
+  return 'Assistente de voz';
+}
+
+function rotuloPlayPause(estado: EstadoAssistente): { label: string; hint: string } {
+  if (estado === 'ouvindo') {
+    return { label: 'Pausar', hint: 'Para de gravar e envia o que você falou' };
+  }
+  if (estado === 'falando' || estado === 'pensando') {
+    return { label: 'Aguarde', hint: 'Espere a resposta terminar para falar de novo' };
+  }
+  return { label: 'Falar', hint: 'Começa a ouvir você' };
 }
 
 export function AssistenteVozOverlay({
   visible,
   estado,
-  transcricao,
-  resposta,
   erro,
+  volume,
   onClose,
-  onToggleEscuta,
-  onEnviarTexto,
+  onPlayPause,
 }: AssistenteVozOverlayProps) {
   const insets = useSafeAreaInsets();
-  const pulso = useSharedValue(1);
-  const [rascunho, setRascunho] = useState('');
-
-  useEffect(() => {
-    if (!visible) setRascunho('');
-  }, [visible]);
-
-  useEffect(() => {
-    if (estado === 'gravando') {
-      pulso.value = withRepeat(
-        withTiming(1.18, { duration: 700, easing: Easing.inOut(Easing.quad) }),
-        -1,
-        true,
-      );
-      return;
-    }
-    pulso.value = withTiming(1, { duration: 180 });
-  }, [estado, pulso]);
-
-  const pulsoStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: pulso.value }],
-  }));
-
   const tabBarTop =
     insets.bottom + layout.floatingTabBar.bottomOffset + layout.floatingTabBar.height;
+  const ocupado = estado === 'pensando' || estado === 'falando';
+  const playPause = rotuloPlayPause(estado);
 
   return (
     <Modal
@@ -83,7 +61,7 @@ export function AssistenteVozOverlay({
       <View style={styles.backdrop} pointerEvents="box-none">
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Fechar assistente de voz"
+          accessibilityLabel="Encerrar conversa"
           style={StyleSheet.absoluteFill}
           onPress={onClose}
         />
@@ -94,76 +72,52 @@ export function AssistenteVozOverlay({
           <GradientFill variant="card" rounded style={styles.card}>
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="Fechar"
-              accessibilityHint="Fecha o assistente de voz"
+              accessibilityLabel="Encerrar"
+              accessibilityHint="Encerra a conversa por voz"
               hitSlop={HIT_SLOP_PADRAO}
               onPress={onClose}
               style={styles.closeButton}>
               <X aria-hidden={true} size={18} color={colors.textMuted} />
             </Pressable>
 
-            <Text style={styles.kicker}>Guia</Text>
-            <Text style={styles.status}>{rotuloEstado(estado)}</Text>
-
-            {transcricao ? (
-              <Text style={styles.transcript} accessibilityLiveRegion="polite">
-                {transcricao}
-              </Text>
-            ) : null}
-
-            {resposta ? (
-              <Text style={styles.reply} accessibilityLiveRegion="polite">
-                {resposta}
-              </Text>
-            ) : null}
+            <Text style={styles.kicker}>Assistente de Voz</Text>
+            <Text style={styles.status} accessibilityLiveRegion="polite">
+              {rotuloEstado(estado)}
+            </Text>
 
             {erro ? <Text style={styles.error}>{erro}</Text> : null}
 
-            <View style={styles.micRow}>
-              <Animated.View style={pulsoStyle}>
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel={
-                    estado === 'gravando' ? 'Enviar o que você falou' : 'Falar com o Guia'
-                  }
-                  accessibilityHint="Inicia a gravação da sua pergunta ou envia o que já foi gravado"
-                  onPress={onToggleEscuta}
-                  style={[
-                    styles.micButton,
-                    estado === 'gravando' && styles.micButtonActive,
-                  ]}>
-                  <Mic
-                    aria-hidden={true}
-                    size={26}
-                    color={estado === 'gravando' ? colors.backgroundEnd : colors.textPrimary}
-                  />
-                </Pressable>
-              </Animated.View>
+            <View style={styles.avatarHit}>
+              <AssistenteVozAvatar estado={estado} volume={volume} />
             </View>
 
-            <TextInput
-              value={rascunho}
-              onChangeText={setRascunho}
-              placeholder="Ou pergunte por escrito"
-              placeholderTextColor={colors.textMuted}
-              accessibilityLabel="Perguntar por escrito"
-              editable={estado !== 'pensando'}
-              returnKeyType="send"
-              onSubmitEditing={() => {
-                const texto = rascunho.trim();
-                if (!texto || estado === 'pensando') return;
-                setRascunho('');
-                onEnviarTexto(texto);
-              }}
-              style={styles.textoInput}
-            />
+            <View
+              accessibilityRole="progressbar"
+              accessibilityLabel="Volume do microfone"
+              accessibilityValue={{ min: 0, max: 100, now: Math.round(volume * 100) }}
+              style={styles.barras}>
+              {[0.08, 0.22, 0.4, 0.6, 0.78].map((limiar, i) => (
+                <View
+                  key={limiar}
+                  style={[
+                    styles.barra,
+                    { height: 10 + i * 5 },
+                    estado === 'ouvindo' && volume >= limiar ? styles.barraLigada : styles.barraApagada,
+                  ]}
+                />
+              ))}
+            </View>
 
-            <Button
-              variant="ghost"
-              label="Fechar"
-              accessibilityHint="Fecha o assistente de voz"
-              onPress={onClose}
-            />
+            <View style={styles.playPauseWrap}>
+              <Button
+                variant="accent"
+                label={playPause.label}
+                disabled={ocupado}
+                accessibilityHint={playPause.hint}
+                onPress={onPlayPause}
+                className="w-full"
+              />
+            </View>
           </GradientFill>
         </Animated.View>
       </View>
@@ -187,6 +141,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     padding: spacing.xl,
     paddingTop: spacing.lg,
+    alignItems: 'center',
   },
   closeButton: {
     position: 'absolute',
@@ -197,64 +152,52 @@ const styles = StyleSheet.create({
   kicker: {
     fontFamily: 'LexendGiga_700Bold',
     fontSize: 11,
-    letterSpacing: 1.4,
+    letterSpacing: 1.2,
     textTransform: 'uppercase',
     color: colors.accent,
+    textAlign: 'center',
   },
   status: {
-    marginTop: 6,
-    paddingRight: 28,
+    marginTop: 8,
     fontFamily: 'Poppins_600SemiBold',
     fontSize: 18,
     color: colors.textPrimary,
-  },
-  transcript: {
-    marginTop: spacing.md,
-    fontFamily: 'Poppins_400Regular',
-    fontSize: 14,
-    color: colors.textSecondary,
-  },
-  reply: {
-    marginTop: spacing.sm,
-    fontFamily: 'Poppins_500Medium',
-    fontSize: 15,
-    color: colors.textPrimary,
+    textAlign: 'center',
   },
   error: {
     marginTop: spacing.md,
     fontFamily: 'Poppins_400Regular',
     fontSize: 14,
     color: colors.danger,
+    textAlign: 'center',
   },
-  micRow: {
-    alignItems: 'center',
-    marginVertical: spacing.lg,
-  },
-  micButton: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+  avatarHit: {
+    marginVertical: spacing.md,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.elevated,
-    borderWidth: 1,
-    borderColor: colors.border,
   },
-  micButtonActive: {
+  barras: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+    gap: 6,
+    height: 32,
+    marginBottom: spacing.xxl,
+  },
+  barra: {
+    width: 7,
+    borderRadius: 4,
+  },
+  barraLigada: {
     backgroundColor: colors.accent,
-    borderColor: colors.accent,
+    opacity: 1,
   },
-  textoInput: {
-    minHeight: 48,
-    marginBottom: spacing.md,
-    borderRadius: layout.inputRadius,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.elevated,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontFamily: 'Poppins_400Regular',
-    fontSize: 14,
-    color: colors.textPrimary,
+  barraApagada: {
+    backgroundColor: colors.accent,
+    opacity: 0.18,
+  },
+  playPauseWrap: {
+    alignSelf: 'stretch',
+    width: '100%',
   },
 });

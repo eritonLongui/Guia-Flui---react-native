@@ -1,3 +1,4 @@
+import { detectarLugar, semAcento } from '@/lib/lugarEstacao';
 import type { Eletroposto, NivelCompatibilidade, Veiculo } from '@/types';
 
 export interface FiltrosExplorar {
@@ -80,5 +81,25 @@ export function aplicarFiltrosExplorar(
     }
 
     return true;
+  });
+}
+
+export function filtrarPorBusca(eletropostos: Eletroposto[], busca: string): Eletroposto[] {
+  const termo = busca.trim();
+  if (!termo) return eletropostos;
+
+  const cidades = [...new Set(eletropostos.map((ep) => ep.cidade).filter(Boolean))];
+  const lugar = detectarLugar(termo, cidades);
+  const n = semAcento(termo);
+
+  return eletropostos.filter((ep) => {
+    if (lugar.cidade && semAcento(ep.cidade) === semAcento(lugar.cidade)) return true;
+    if (lugar.estado && ep.estado.toUpperCase() === lugar.estado) return true;
+    return (
+      semAcento(ep.nome).includes(n) ||
+      semAcento(ep.endereco).includes(n) ||
+      semAcento(ep.cidade).includes(n) ||
+      semAcento(ep.estado).includes(n)
+    );
   });
 }

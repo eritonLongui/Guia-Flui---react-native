@@ -131,9 +131,11 @@ Pastas `ios/` e `android/` são geradas localmente (`npm run prebuild`) e **não
 
 Projeto EAS: **[@marcomendessv/guia-flui](https://expo.dev/accounts/marcomendessv/projects/guia-flui)**. O APK de preview já sobe com Maps + Supabase.
 
-**Instalar (Android):** abra o build no Expo (permite fontes desconhecidas se o sistema pedir):
+**Instalar (Android):** este APK de preview (Maps + Supabase + assistente de voz). Permita fontes desconhecidas se o sistema pedir.
 
-[Builds do Guia Flui](https://expo.dev/accounts/marcomendessv/projects/guia-flui/builds)
+- [Abrir o build no Expo](https://expo.dev/accounts/marcomendessv/projects/guia-flui/builds/31e4f8ef-1cf3-491f-8cbd-097ded224c54)
+- [Baixar o APK](https://expo.dev/artifacts/eas/QKhCKwm8wDD2HQe0x2Z7U75OMj5Z8I_oJ1gCaIPfHUk.apk)
+- [Todas as builds](https://expo.dev/accounts/marcomendessv/projects/guia-flui/builds)
 
 Também nas [Releases do GitHub](https://github.com/eritonLongui/Guia-Flui---react-native/releases/latest), quando houver um `.apk` anexado.
 
@@ -280,7 +282,8 @@ Mais detalhes: [docs/SETUP.md](docs/SETUP.md).
 
 ## Download
 
-- [APK Android (EAS)](https://expo.dev/accounts/marcomendessv/projects/guia-flui/builds)
+- [APK Android (esta build)](https://expo.dev/accounts/marcomendessv/projects/guia-flui/builds/31e4f8ef-1cf3-491f-8cbd-097ded224c54)
+- [Download direto do APK](https://expo.dev/artifacts/eas/QKhCKwm8wDD2HQe0x2Z7U75OMj5Z8I_oJ1gCaIPfHUk.apk)
 - [Releases no GitHub](https://github.com/eritonLongui/Guia-Flui---react-native/releases/latest)
 - [Código-fonte](https://github.com/eritonLongui/Guia-Flui---react-native)
 
